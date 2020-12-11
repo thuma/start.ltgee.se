@@ -9,8 +9,7 @@
     <div class="container">
       <script>
         var GoogleAuth;
-        var SCOPE = ['https://www.googleapis.com/auth/classroom.courses.readonly',
-            'https://www.googleapis.com/auth/classroom.coursework.students.readonly'];
+        var SCOPE = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.coursework.students.readonly';
         function handleClientLoad() {
           // Load the API's client and auth2 modules.
           // Call the initClient function after the modules load.
