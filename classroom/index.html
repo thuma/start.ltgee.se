@@ -71,6 +71,8 @@
             $('#revoke-access-button').css('display', 'inline-block');
             $('#auth-status').html('You are currently signed in and have granted ' +
                 'access to this app.');
+            function indata(data){console.log(data.result)}
+            gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses","params":{"courseStates":"ACTIVE"}}).then(indata)
           } else {
             $('#sign-in-or-out-button').html('Sign In/Authorize');
             $('#revoke-access-button').css('display', 'none');
