@@ -9,7 +9,8 @@
     <div class="container">
       <script>
         var GoogleAuth;
-        var SCOPE = 'https://www.googleapis.com/auth/drive.metadata.readonly';
+        var SCOPE = ['https://www.googleapis.com/auth/classroom.courses.readonly',
+            'https://www.googleapis.com/auth/classroom.coursework.students.readonly'];
         function handleClientLoad() {
           // Load the API's client and auth2 modules.
           // Call the initClient function after the modules load.
@@ -18,16 +19,13 @@
       
         function initClient() {
           // In practice, your app can retrieve one or more discovery documents.
-          var accesslist = [
-            'https://www.googleapis.com/auth/classroom.courses.readonly',
-            'https://www.googleapis.com/auth/classroom.coursework.students.readonly'
-            ]
+          var discoveryUrl = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
       
           // Initialize the gapi.client object, which app uses to make API requests.
           // Get API key and client ID from API Console.
           // 'scope' field specifies space-delimited list of access scopes.
           gapi.client.init({
-              'apiKey': 'AIzaSyBJbdSNcDcq_C86__XSvsRHaF0GgLdRIDA',
+              'apiKey': 'YOUR_API_KEY',
               'clientId': '895135418381-m1fmm24b5h76upit18r43f8su4pptld9.apps.googleusercontent.com',
               'discoveryDocs': [discoveryUrl],
               'scope': SCOPE
