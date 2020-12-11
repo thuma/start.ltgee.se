@@ -18,7 +18,10 @@
       
         function initClient() {
           // In practice, your app can retrieve one or more discovery documents.
-          var discoveryUrl = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
+          var accesslist = [
+            'https://www.googleapis.com/auth/classroom.courses.readonly',
+            'https://www.googleapis.com/auth/classroom.coursework.students.readonly'
+            ]
       
           // Initialize the gapi.client object, which app uses to make API requests.
           // Get API key and client ID from API Console.
