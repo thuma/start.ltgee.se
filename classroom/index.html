@@ -71,7 +71,7 @@
             $('#revoke-access-button').css('display', 'inline-block');
             $('#auth-status').html('You are currently signed in and have granted ' +
                 'access to this app.');
-            function indata(data){app.courses = data.courses}
+            function indata(data){window.app.courses = data.result.courses}
             gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses","params":{"courseStates":"ACTIVE"}}).then(indata)
           } else {
             $('#sign-in-or-out-button').html('Sign In/Authorize');
@@ -102,7 +102,7 @@
       
       <div id="classroom">
         <div v-for="klass in courses">
-           {{ klass }}
+           {{ klass.name }}
         </div>
       </div>
       
