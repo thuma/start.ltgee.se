@@ -185,6 +185,12 @@
                 if(data.result.studentSubmissions){
                   data.result.studentSubmissions.forEach(courseWorkSubmissionUpdate);
                 }
+                if(data.result.nextPageToken){
+                  gapi.client.request(
+                      {"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/courseWork/-/studentSubmissions",
+                      "params":{"pageToken":data.result.nextPageToken}}
+                      ).then(courseWorkSubmission);
+                }
               }                
               gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/courseWork/-/studentSubmissions","params":{}}).then(courseWorkSubmission)
             })
