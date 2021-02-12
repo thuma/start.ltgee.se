@@ -151,6 +151,22 @@
               }                
               gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/students","params":{}}).then(students)
             })
+          },
+          getCourseWork: function (){
+            var app = this;
+            this.courses.forEach(function(kurs){
+              var kurser = kurs
+              function courseWork(data){
+                function courseWorkUpdate(onecourseWork){
+                  if(kurser.courseWork){} else {
+                    kurser.courseWork = {}
+                  }
+                  kurser.courseWork[onecourseWork.id] = onecourseWork;
+                }
+                data.result.courseWork.forEach(courseWorkUpdate);
+              }                
+              gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/courseWork","params":{}}).then(courseWork)
+            })
           }
         }
       })
