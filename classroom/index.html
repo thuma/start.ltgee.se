@@ -170,7 +170,7 @@
               }                
               gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/courseWork","params":{}}).then(courseWork)
             })
-          }
+          },
           getCourseWork: function (){
             var app = this;
             this.courses.forEach(function(kurs){
