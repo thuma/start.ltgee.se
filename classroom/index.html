@@ -132,7 +132,7 @@
         },
         methods: {
           getStudents: function (){
-            this.courses.foreach(function(kurs){
+            Array(this.courses).foreach(function(kurs){
               console.log(kurs)                
 
             })
