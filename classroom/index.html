@@ -101,15 +101,13 @@
       <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
       
       <div id="classroom">
-        <div v-for="klass in courses">
-          <div class="container">
             <div class="card mt-3">
               <div class="card-body">
                 <h5 class="card-title">Kurser</h5>
                 <p class="card-text">Aktiva kurse</p>
                 <table class="card-body table table-sm">
                   <tbody>
-                    <tr>
+                    <tr v-for="klass in courses">
                       <td>{{ klass.name }}</td>
                       <td><a v-bind:href="'https://script.google.com/a/educ.goteborg.se/macros/s/AKfycbz_nMqzVoxYKDOWT5pUW0rdDfhVWddmMX9kXzB7CCH3OGff4Kla/exec?course='+klass.id" target="_blank">Översikt</a></td>
                       <td><a v-bind:href="klass.alternateLink" target="_blank">Classroom</a></td>
@@ -120,9 +118,6 @@
                 </table>
               </div>
             </div>
-          </div>
-           
-        </div>
       </div>
       
       <script>
