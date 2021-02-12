@@ -133,24 +133,15 @@
         methods: {
           getStudents: function (){
             Array(this.courses).forEach(function(kurs){
-              console.log(kurs)                
-
+              function students(data){
+                data.result.students.forEach(console.log);
+              }                
+              gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/'+kurs.id+'/students","params":{}).then(students)
             })
           }
         }
       })
       </script>
-            <!--function students(data){
-              window.app.students = data.result.students;
-              localStorage.setItem("students", JSON.stringify(data.result.students));
-            }
-            gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/{courseId}/students","params":{}).then(students)
-            students: window.courses_students
-            if(courses_students){
-              courses_students = JSON.parse(courses_students);
-            } else {
-              courses_students = [];
-            }-->
       <button id="sign-in-or-out-button" class="btn btn-secondary">Logga in</button>
       <button id="revoke-access-button" class="btn btn-secondary">Stäng av</button>
       <div id="auth-status" style="display: inline; padding-left: 25px"></div>
