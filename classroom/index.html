@@ -191,7 +191,7 @@
                       "params":{"pageToken":data.result.nextPageToken}}
                       ).then(courseWorkSubmission);
                 }
-              }                
+              }
               gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/courseWork/-/studentSubmissions","params":{}}).then(courseWorkSubmission)
             })
           }
