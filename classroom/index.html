@@ -130,17 +130,22 @@
         data: {
           courses: window.courses_data
         },
+        computed: {
+          coursesById: function(){
+            return {};
+          }
+        },
         methods: {
           getStudents: function (){
             var app = this;
             this.courses.forEach(function(kurs){
+              var kurser = kurs
               function students(data){
                 function studentUpdate(student){
-                  if(app.courses_data[student.courseId].students){} else {
-                    app.courses_data[student.courseId].students = {}
+                  if(kurser.students){} else {
+                    kurser.students = {}
                   }
-                  app.courses_data[student.courseId].students[student.userId] =  student.profile;
-
+                  kurser.students[student.userId] =  student.profile;
                 }
                 data.result.students.forEach(studentUpdate);
               }                
