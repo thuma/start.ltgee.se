@@ -178,7 +178,7 @@
               function courseWorkSubmission(data){
                 function courseWorkSubmissionUpdate(onecourseWorkSubmission){
                   if(kurser.courseWork[onecourseWorkSubmission.courseWorkId].sbumissions){} else {
-                    kurser.courseWork[].submissions = {}
+                    kurser.courseWork[onecourseWorkSubmission.courseWorkId].submissions = {}
                   }
                   kurser.courseWork[onecourseWorkSubmission.courseWorkId].submissions[onecourseWorkSubmission.id] = onecourseWorkSubmission;
                 }
