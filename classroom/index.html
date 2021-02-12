@@ -9,7 +9,16 @@
     <div class="container">
       <script>
         var GoogleAuth;
-        var SCOPE = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.coursework.students.readonly';
+        var Scopes = [
+          "https://www.googleapis.com/auth/classroom.rosters",
+          "https://www.googleapis.com/auth/classroom.rosters.readonly",
+          "https://www.googleapis.com/auth/classroom.profile.emails",
+          "https://www.googleapis.com/auth/classroom.profile.photos",
+          "https://www.googleapis.com/auth/classroom.courses.readonly",
+          "https://www.googleapis.com/auth/classroom.coursework.students.readonly"
+        ]
+
+        var SCOPE = Scopes.join(" ");
         function handleClientLoad() {
           // Load the API's client and auth2 modules.
           // Call the initClient function after the modules load.
@@ -76,10 +85,9 @@
             }
             gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses","params":{"courseStates":"ACTIVE"}}).then(indata)
           } else {
-            $('#sign-in-or-out-button').html('Sign In/Authorize');
+            $('#sign-in-or-out-button').html('Logga in');
             $('#revoke-access-button').css('display', 'none');
-            $('#auth-status').html('You have not authorized this app or you are ' +
-                'signed out.');
+            $('#auth-status').html('Du är inte inloggad');
           }
         }
       
@@ -121,13 +129,31 @@
         el: '#classroom',
         data: {
           courses: window.courses_data
+        },
+        methods: {
+          getStudents: function (){
+            this.courses.foreach(function(kurs){
+              console.log(kurs)                
+
+            })
+          }
         }
       })
       </script>
-
+            <!--function students(data){
+              window.app.students = data.result.students;
+              localStorage.setItem("students", JSON.stringify(data.result.students));
+            }
+            gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/{courseId}/students","params":{}).then(students)
+            students: window.courses_students
+            if(courses_students){
+              courses_students = JSON.parse(courses_students);
+            } else {
+              courses_students = [];
+            }-->
       <button id="sign-in-or-out-button" class="btn btn-secondary">Logga in</button>
       <button id="revoke-access-button" class="btn btn-secondary">Stäng av</button>
-      <div id="auth-status" style="display: inline; padding-left: 25px"></div><hr>
+      <div id="auth-status" style="display: inline; padding-left: 25px"></div>
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
       <script async defer src="https://apis.google.com/js/api.js"
         onload="this.onload=function(){};handleClientLoad()"
