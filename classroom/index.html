@@ -71,7 +71,10 @@
             $('#revoke-access-button').css('display', 'inline-block');
             $('#auth-status').html('You are currently signed in and have granted ' +
                 'access to this app.');
-            function indata(data){window.app.courses = data.result.courses}
+            function indata(data){
+              window.app.courses = data.result.courses;
+              localStorage.setItem("courses", JSON.stringify(data.result.courses));
+            }
             gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses","params":{"courseStates":"ACTIVE"}}).then(indata)
           } else {
             $('#sign-in-or-out-button').html('Sign In/Authorize');
@@ -121,10 +124,17 @@
       </div>
       
       <script>
+      
+      var courses_data = localStorage.getItem("courses");
+      if(courses_data){
+        courses_data = JSON.parse(courses_data);
+      } else {
+        courses_data = [];
+      }
       var app = new Vue({
         el: '#classroom',
         data: {
-          courses: []
+          courses: window.courses_data
         }
       })
       </script>
