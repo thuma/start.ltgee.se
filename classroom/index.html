@@ -67,10 +67,9 @@
           var user = GoogleAuth.currentUser.get();
           var isAuthorized = user.hasGrantedScopes('https://www.googleapis.com/auth/classroom.courses.readonly');
           if (isAuthorized) {
-            $('#sign-in-or-out-button').html('Sign out');
+            $('#sign-in-or-out-button').html('Logga ut');
             $('#revoke-access-button').css('display', 'inline-block');
-            $('#auth-status').html('You are currently signed in and have granted ' +
-                'access to this app.');
+            $('#auth-status').html('Du är inloggad');
             function indata(data){
               window.app.courses = data.result.courses;
               localStorage.setItem("courses", JSON.stringify(data.result.courses));
@@ -88,18 +87,6 @@
           setSigninStatus();
         }
       </script>
-      
-      <button id="sign-in-or-out-button"
-              style="margin-left: 25px">Sign In/Authorize</button>
-      <button id="revoke-access-button"
-              style="display: none; margin-left: 25px">Revoke access</button>
-      
-      <div id="auth-status" style="display: inline; padding-left: 25px"></div><hr>
-      
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-      <script async defer src="https://apis.google.com/js/api.js"
-              onload="this.onload=function(){};handleClientLoad()"
-              onreadystatechange="if (this.readyState === 'complete') this.onload()"></script>
     
       <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
       
@@ -124,7 +111,6 @@
       </div>
       
       <script>
-      
       var courses_data = localStorage.getItem("courses");
       if(courses_data){
         courses_data = JSON.parse(courses_data);
@@ -138,7 +124,14 @@
         }
       })
       </script>
-      </script>
+
+      <button id="sign-in-or-out-button" class="btn btn-secondary">Logga in</button>
+      <button id="revoke-access-button" class="btn btn-secondary">Stäng av</button>
+      <div id="auth-status" style="display: inline; padding-left: 25px"></div><hr>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+      <script async defer src="https://apis.google.com/js/api.js"
+        onload="this.onload=function(){};handleClientLoad()"
+        onreadystatechange="if (this.readyState === 'complete') this.onload()"></script>
     </div>
   </body>
 </html>
