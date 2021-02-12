@@ -163,7 +163,9 @@
                   }
                   kurser.courseWork[onecourseWork.id] = onecourseWork;
                 }
-                data.result.courseWork.forEach(courseWorkUpdate);
+                if(data.result.courseWork){
+                  data.result.courseWork.forEach(courseWorkUpdate);
+                }
               }                
               gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/courseWork","params":{}}).then(courseWork)
             })
