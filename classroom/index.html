@@ -136,7 +136,7 @@
               function students(data){
                 data.result.students.forEach(console.log);
               }                
-              gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/'+kurs.id+'/students","params":{}}).then(students)
+              gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/students","params":{}}).then(students)
             })
           }
         }
