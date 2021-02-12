@@ -132,9 +132,17 @@
         },
         methods: {
           getStudents: function (){
-            Array(this.courses).forEach(function(kurs){
+            var app = this;
+            this.courses.forEach(function(kurs){
               function students(data){
-                data.result.students.forEach(console.log);
+                function studentUpdate(student){
+                  if(app.courses_data[student.courseId].students){} else {
+                    app.courses_data[student.courseId].students = {}
+                  }
+                  app.courses_data[student.courseId].students[student.userId] =  student.profile;
+
+                }
+                data.result.students.forEach(studentUpdate);
               }                
               gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/students","params":{}}).then(students)
             })
@@ -152,4 +160,3 @@
     </div>
   </body>
 </html>
-
