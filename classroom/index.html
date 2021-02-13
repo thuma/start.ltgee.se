@@ -177,10 +177,10 @@
               var kurser = kurs
               function courseWorkSubmission(data){
                 function courseWorkSubmissionUpdate(onecourseWorkSubmission){
-                  if(kurser.courseWork[onecourseWorkSubmission.courseWorkId].sbumissions){} else {
-                    kurser.courseWork[onecourseWorkSubmission.courseWorkId].submissions = {}
+                  if(kurser.sbumissions){} else {
+                    kurser.submissions = {}
                   }
-                  kurser.courseWork[onecourseWorkSubmission.courseWorkId].submissions[onecourseWorkSubmission.id] = onecourseWorkSubmission;
+                  kurser.submissions[onecourseWorkSubmission.id] = onecourseWorkSubmission;
                 }
                 if(data.result.studentSubmissions){
                   data.result.studentSubmissions.forEach(courseWorkSubmissionUpdate);
