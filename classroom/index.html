@@ -6,7 +6,7 @@
     <title>Classroom FGUI</title>
   </head>
   <body>
-    <div class="container">
+    <div class="container-fluid">
       <script>
         var GoogleAuth;
         var Scopes = [
@@ -103,12 +103,12 @@
             <div class="card mt-3">
               <div class="card-body">
                 <h5 class="card-title">Kurser</h5>
-                <p class="card-text">Aktiva kurse</p>
+                <p class="card-text">Aktiva kurser</p>
                 <table class="card-body table table-sm">
                   <tbody>
                     <tr v-for="klass in courses">
                       <td>{{ klass.name }}</td>
-                      <td><a v-bind:href="'https://script.google.com/a/educ.goteborg.se/macros/s/AKfycbz_nMqzVoxYKDOWT5pUW0rdDfhVWddmMX9kXzB7CCH3OGff4Kla/exec?course='+klass.id" target="_blank">Översikt</a></td>
+                      <td><a href="#" v-on:click="show=klass.id">Översikt</a></td>
                       <td><a v-bind:href="klass.alternateLink" target="_blank">Classroom</a></td>
                       <td><a v-bind:href="'https://script.google.com/macros/s/AKfycbzDuxI8tB2RExex7w6AdAq-pQjZfqgY5YRqEfX5xTK4bZyLqxU/exec?course='+klass.id" target="_blank">Elevlänk</a></td>
                       <td><a v-bind:href="'mailto:'+klass.courseGroupEmail" target="_blank">Gruppmail</a></td>
@@ -117,6 +117,23 @@
                 </table>
               </div>
             </div>
+                <table class="card-body table table-sm" v-if="show">
+                  <thead class="thead-light">
+                    <tr>
+                      <th>Namn</th>
+                      <th>Klass <button class="btn btn-info btn-sm">alla</button></th>
+                      <th v-bind:title="work.title" v-for="work in courceData.courseWork">
+                        <a v-bind:href="work.alternateLink" target="_blank">{{ work.title.split(" ")[0] }}</a>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="student in courceData.students">
+                      <td>{{ student.name.fullName }}</td>
+                      <td>None</td>
+                    </tr>
+                  </tbody>
+                </table>
       </div>
       
       <script>
@@ -129,11 +146,28 @@
       var app = new Vue({
         el: '#classroom',
         data: {
-          courses: window.courses_data
+          courses: window.courses_data,
+          show: ""
         },
         computed: {
-          coursesById: function(){
-            return {};
+          courceData: function(){
+            if (this.show) {
+              function byTaskName( a, b ) {
+  		if ( a.title < b.title ){
+    		  return -1;
+  		}
+                if ( a.title > b.title ){
+                  return 1;
+                }
+                return 0;
+              }
+              var final = this.courses.find(element => element.id == this.show);
+              final.courseWork = final.courseWork.sort(byTaskName)
+              return final;
+            }
+            else {
+              return {};
+            }
           }
         },
         methods: {
@@ -144,9 +178,9 @@
               function students(data){
                 function studentUpdate(student){
                   if(kurser.students){} else {
-                    kurser.students = {}
+                    kurser.students = []
                   }
-                  kurser.students[student.userId] =  student.profile;
+                  kurser.students.push(student.profile);
                 }
                 data.result.students.forEach(studentUpdate);
               }                
@@ -160,9 +194,9 @@
               function courseWork(data){
                 function courseWorkUpdate(onecourseWork){
                   if(kurser.courseWork){} else {
-                    kurser.courseWork = {}
+                    kurser.courseWork = []
                   }
-                  kurser.courseWork[onecourseWork.id] = onecourseWork;
+                  kurser.courseWork.push(onecourseWork);
                 }
                 if(data.result.courseWork){
                   data.result.courseWork.forEach(courseWorkUpdate);
@@ -177,10 +211,10 @@
               var kurser = kurs
               function courseWorkSubmission(data){
                 function courseWorkSubmissionUpdate(onecourseWorkSubmission){
-                  if(kurser.sbumissions){} else {
-                    kurser.submissions = {}
+                  if("submissions" in kurser){} else {
+                    kurser.submissions = []
                   }
-                  kurser.submissions[onecourseWorkSubmission.id] = onecourseWorkSubmission;
+                  kurser.submissions.push[onecourseWorkSubmission];
                 }
                 if(data.result.studentSubmissions){
                   data.result.studentSubmissions.forEach(courseWorkSubmissionUpdate);
