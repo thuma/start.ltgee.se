@@ -82,6 +82,9 @@
             $('#auth-status').html('Du är inloggad');
             function indata(data){
               window.app.courses = data.result.courses;
+              app.getCourseWork();
+              app.getStudents();
+              app.getStudentSubmissions();
               localStorage.setItem("courses", JSON.stringify(data.result.courses));
             }
             gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses","params":{"courseStates":"ACTIVE"}}).then(indata)
@@ -131,6 +134,13 @@
                     <tr v-for="student in courceData.students">
                       <td>{{ student.name.fullName }}</td>
                       <td>None</td>
+                      <template v-for="work in getSubmissions(student.id)">
+                      <td v-if="['NEW','CREATED','RECLAIMED_BY_STUDENT'].indexOf(work.state) > -1 " >EI</td>
+                      <td v-else-if="work.state == 'TURNED_IN'">TI</td>
+                      <td v-else-if="work.state == 'RETURNED' && work.assignedGrade > 0 ">OK</td>
+                      <td v-else-if="work.state == 'RETURNED'">RE</td>
+                      <td v-else="">{{work.state}}</td>
+                      </template>
                     </tr>
                   </tbody>
                 </table>
@@ -171,6 +181,24 @@
           }
         },
         methods: {
+          save: function(){
+            localStorage.setItem("courses", JSON.stringify(this.courses));
+          },
+          getSubmissions: function (elevid){
+              var alla = [];
+              for(var i = 0; i < this.courceData.courseWork.length; i++){
+                alla.push(this.getSubmission(elevid, this.courceData.courseWork[i].id));
+              }
+              return alla;
+          },
+          getSubmission: function (elevid, uppgiftid){
+             var hittad = this.courceData.submissions.find(
+		task => task.courseWorkId == uppgiftid && task.userId == elevid)
+             if (hittad) {
+               return hittad;
+             }
+             return {"state":""};
+          },
           getStudents: function (){
             var app = this;
             this.courses.forEach(function(kurs){
@@ -214,7 +242,7 @@
                   if("submissions" in kurser){} else {
                     kurser.submissions = []
                   }
-                  kurser.submissions.push[onecourseWorkSubmission];
+                  kurser.submissions.push(onecourseWorkSubmission);
                 }
                 if(data.result.studentSubmissions){
                   data.result.studentSubmissions.forEach(courseWorkSubmissionUpdate);
