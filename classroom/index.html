@@ -3,6 +3,15 @@
   <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <script src="lz-string.js"></script>
+    <style>
+     .whitep {
+       color: white;
+     }
+     .nolnb {
+       white-space: nowrap;
+     }
+    </style>
     <title>Classroom FGUI</title>
   </head>
   <body>
@@ -85,7 +94,7 @@
               app.getCourseWork();
               app.getStudents();
               app.getStudentSubmissions();
-              localStorage.setItem("courses", JSON.stringify(data.result.courses));
+              app.save();
             }
             gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses","params":{"courseStates":"ACTIVE"}}).then(indata)
           } else {
@@ -120,7 +129,7 @@
                 </table>
               </div>
             </div>
-                <table class="card-body table table-sm" v-if="show">
+                <table class="table table-sm" v-if="show">
                   <thead class="thead-light">
                     <tr>
                       <th>Namn</th>
@@ -132,13 +141,23 @@
                   </thead>
                   <tbody>
                     <tr v-for="student in courceData.students">
-                      <td>{{ student.name.fullName }}</td>
-                      <td>None</td>
+                      <td class="bg-light nolnb">
+                        <input type="checkbox" name="students" />
+                        <a v-bind:href="'mailto:'+student.emailAddress">{{ student.name.fullName }}</a>
+                      </td>
+                      <td></td>
                       <template v-for="work in getSubmissions(student.id)">
-                      <td v-if="['NEW','CREATED','RECLAIMED_BY_STUDENT'].indexOf(work.state) > -1 " >EI</td>
-                      <td v-else-if="work.state == 'TURNED_IN'">TI</td>
-                      <td v-else-if="work.state == 'RETURNED' && work.assignedGrade > 0 ">OK</td>
-                      <td v-else-if="work.state == 'RETURNED'">RE</td>
+                      <td v-if="['NEW','CREATED','RECLAIMED_BY_STUDENT'].indexOf(work.state) > -1 " class="bg-light">
+                        <a target="_blank" v-bind:href="work.alternateLink">☐</a>
+                      </td>
+                      <td v-else-if="work.state == 'TURNED_IN'" class="bg-info">
+                       <a target="_blank" v-bind:href="work.alternateLink">🆕</a>
+                      </td>
+                      <td v-else-if="work.state == 'RETURNED' && work.assignedGrade > 0 " class="bg-success">
+                        <a target="_blank" v-bind:href="work.alternateLink">☑</a></td>
+                      <td v-else-if="work.state == 'RETURNED'" class="bg-warning">
+                        <a target="_blank" v-bind:href="work.alternateLink">↩</a></td>
+                      </td>
                       <td v-else="">{{work.state}}</td>
                       </template>
                     </tr>
@@ -149,7 +168,7 @@
       <script>
       var courses_data = localStorage.getItem("courses");
       if(courses_data){
-        courses_data = JSON.parse(courses_data);
+        courses_data = JSON.parse(LZString.decompress(courses_data));
       } else {
         courses_data = [];
       }
@@ -182,7 +201,7 @@
         },
         methods: {
           save: function(){
-            localStorage.setItem("courses", JSON.stringify(this.courses));
+            localStorage.setItem("courses", LZString.compress(JSON.stringify(this.courses)));
           },
           getSubmissions: function (elevid){
               var alla = [];
