@@ -86,6 +86,7 @@
           var user = GoogleAuth.currentUser.get();
           var isAuthorized = user.hasGrantedScopes('https://www.googleapis.com/auth/classroom.courses.readonly');
           if (isAuthorized) {
+            app.update();
             $('#sign-in-or-out-button').html('Logga ut');
             $('#revoke-access-button').css('display', 'inline-block');
             $('#auth-status').html('Du är inloggad');
@@ -124,7 +125,7 @@
                 <table class="table table-sm" v-if="show">
                   <thead class="thead-light">
                     <tr>
-                      <th>Namn</th>
+                      <th><a v-bind:href="courceData.alternateLink" target="_blank">{{ courceData.name }}</a></th>
                       <th>Klass <button class="btn btn-info btn-sm">alla</button></th>
                       <th v-bind:title="work.title" v-for="work in courceData.courseWork">
                         <a v-bind:href="work.alternateLink" target="_blank">{{ work.title.split(" ")[0] }}</a>
@@ -163,21 +164,26 @@
       </div>
       
       <script>
-      var courses_data = localStorage.getItem("courses");
-      if(courses_data){
-        courses_data = JSON.parse(LZString.decompress(courses_data));
-      } else {
-        courses_data = [];
-      }
       var app = new Vue({
         el: '#classroom',
         data: {
-          courses: window.courses_data,
+          courses: [],
+          students: {},
+          works: {},
+          submissions: {},
           show: ""
         },
         computed: {
           courceData: function(){
             if (this.show) {
+              return this.courceDatas[this.show];
+            } else {
+              return {};
+            }
+          },
+          courceDatas: function(){
+           var out = {};
+           for(var i = 0; i < this.courses.length; i++){
               function byTaskName( a, b ) {
   		if ( a.title < b.title ){
     		  return -1;
@@ -187,14 +193,22 @@
                 }
                 return 0;
               }
-              var final = this.courses.find(element => element.id == this.show);
-              final.courseWork = final.courseWork.sort(byTaskName)
-              return final;
+              
+              function toHash(final, single) {
+                final[single.courseWorkId+single.userId] = single;
+                return final
+              }
+              var final = this.courses[i];
+              final.courseWork = this.works[this.show].sort(byTaskName);
+              final.students = this.students[this.show].map(elev => elev.profile);
+              final.submissions = this.submissions[this.show].reduce(toHash,{});
+              out[final.id] = final;
             }
-            else {
-              return {};
-            }
+          return out;
           }
+        },
+        created: function(){
+          this.load();
         },
         methods: {
           update: function(){
@@ -208,8 +222,27 @@
             }
             gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses","params":{"courseStates":"ACTIVE"}}).then(indata)
           },
+          load: function(){
+             var app = this;
+             ["courses","students","works","submissions"].forEach(function(name){
+		var data = localStorage.getItem(name);
+      		if(data){
+        	  data = JSON.parse(LZString.decompress(data));
+                } else {
+                  data = [];
+                }
+                if(name == "courses"){
+                  app.courses = data;
+                } else {
+                  app[name] = Object.assign({}, app[name], data);
+                }
+             });
+          },
           save: function(){
-            localStorage.setItem("courses", LZString.compress(JSON.stringify(this.courses)));
+             var app = this;
+             ["courses","students","works","submissions"].forEach(function(name){
+               localStorage.setItem(name, LZString.compress(JSON.stringify(app[name])));
+             });
           },
           getSubmissions: function (elevid){
               var alla = [];
@@ -219,8 +252,7 @@
               return alla;
           },
           getSubmission: function (elevid, uppgift){
-             var hittad = this.courceData.submissions.find(
-		task => task.courseWorkId == uppgift.id && task.userId == elevid)
+             var hittad = this.courceData.submissions[uppgift.id+elevid];
              if (hittad) {
                hittad["courseWork"] = uppgift;
                if (hittad.courseWork.maxPoints > 1  && hittad.assignedGrade > 0){
@@ -240,15 +272,9 @@
           getStudents: function (){
             var app = this;
             this.courses.forEach(function(kurs){
-              var kurser = kurs
+              var lkurs = kurs;
               function students(data){
-                function studentUpdate(student){
-                  if(kurser.students){} else {
-                    kurser.students = []
-                  }
-                  kurser.students.push(student.profile);
-                }
-                data.result.students.forEach(studentUpdate);
+                app.students[lkurs.id] = data.result.students;
               }                
               gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/students","params":{}}).then(students)
             })
@@ -256,40 +282,27 @@
           getCourseWork: function (){
             var app = this;
             this.courses.forEach(function(kurs){
-              var kurser = kurs
+              var lkurs = kurs
               function courseWork(data){
-                function courseWorkUpdate(onecourseWork){
-                  if(kurser.courseWork){} else {
-                    kurser.courseWork = []
-                  }
-                  kurser.courseWork.push(onecourseWork);
+                 app.works[lkurs.id] = data.result.courseWork;
                 }
-                if(data.result.courseWork){
-                  data.result.courseWork.forEach(courseWorkUpdate);
-                }
-              }                
               gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/courseWork","params":{}}).then(courseWork)
             })
           },
           getStudentSubmissions: function (){
             var app = this;
             this.courses.forEach(function(kurs){
-              var kurser = kurs
+              var lkurs = kurs
+              var newsubmissions = [];
               function courseWorkSubmission(data){
-                function courseWorkSubmissionUpdate(onecourseWorkSubmission){
-                  if("submissions" in kurser){} else {
-                    kurser.submissions = []
-                  }
-                  kurser.submissions.push(onecourseWorkSubmission);
-                }
-                if(data.result.studentSubmissions){
-                  data.result.studentSubmissions.forEach(courseWorkSubmissionUpdate);
-                }
+                newsubmissions = newsubmissions.concat(data.result.studentSubmissions);
                 if(data.result.nextPageToken){
                   gapi.client.request(
-                      {"path":"https://classroom.googleapis.com/v1/courses/"+kurser.id+"/courseWork/-/studentSubmissions",
+                      {"path":"https://classroom.googleapis.com/v1/courses/"+lkurs.id+"/courseWork/-/studentSubmissions",
                       "params":{"pageToken":data.result.nextPageToken}}
                       ).then(courseWorkSubmission);
+                } else {
+                  app.submissions[lkurs.id] = newsubmissions;
                 }
               }
               gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/courseWork/-/studentSubmissions","params":{}}).then(courseWorkSubmission)
