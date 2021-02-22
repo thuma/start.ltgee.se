@@ -100,6 +100,10 @@
         function updateSigninStatus() {
           setSigninStatus();
         }
+
+        function elever(data){
+          app.$set(app, "elever", data);
+        }
       </script>
     
       <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
@@ -127,7 +131,8 @@
                   <thead class="thead-light">
                     <tr>
                       <th><a v-bind:href="courceData.alternateLink" target="_blank">{{ courceData.name }}</a></th>
-                      <th>Klass <button class="btn btn-info btn-sm">alla</button></th>
+                      <th>Pim</th>
+                      <th>Klass <button v-on:click="klass=''" class="btn btn-info btn-sm">alla</button></th>
                       <th v-bind:title="work.title" v-for="work in courceData.courseWork">
                         <a v-bind:href="work.alternateLink" target="_blank">{{ work.title.split(" ")[0] }}</a>
                       </th>
@@ -139,7 +144,14 @@
                         <input type="checkbox" name="students" />
                         <a v-bind:href="'mailto:'+student.emailAddress">{{ student.name.fullName }}</a>
                       </td>
-                      <td></td>
+                      <td>
+                        <a
+                          target="_blank"
+                          class="btn btn-sm btn-outline-info"
+                          role="button"
+                          v-bind:href="'https://hjarntorget.goteborg.se/pimWritePopup.do?recipient='+student.elevdata.pim">pim</button>
+                      </td>
+                      <td><button v-on:click="klass=student.elevdata.klass" class="btn btn-sm">{{ student.elevdata.klass }}</button></td>
                       <template v-for="work in getSubmissions(student.id)">
                       <td v-if="['NEW','CREATED','RECLAIMED_BY_STUDENT'].indexOf(work.state) > -1 " class="bg-light">
                         <a target="_blank" v-bind:href="work.alternateLink">☐</a>
@@ -175,9 +187,19 @@
           works: {},
           submissions: {},
           show: "",
-          prov: false
+          prov: false,
+          elever: [],
+          klass: ""
         },
         computed: {
+          eleverByEmail: function(){
+             var allaelever = this.elever;
+             function tillmap(enmapp, enrad){
+               enmapp[enrad[1]] = {"namn":enrad[0],"pim":enrad[3],"klass":enrad[4]};
+               return enmapp;
+             }
+             return this.elever.reduce(tillmap, {});
+          },
           courceData: function(){
             if (this.show) {
               return this.courceDatas[this.show];
@@ -188,6 +210,8 @@
           courceDatas: function(){
            var out = {};
            var prov = this.prov;
+           var klass = this.klass;
+           var byEmail = this.eleverByEmail;
            for(var i = 0; i < this.courses.length; i++){
               function byTaskName( a, b ) {
   		if ( a.title < b.title ){
@@ -206,9 +230,26 @@
               function baraprov(work){
                 return (work.title[0]=="P" || prov == false)
               }
+
+              function addElevData(elev){
+                if(byEmail[elev.emailAddress]){
+                  elev["elevdata"] = byEmail[elev.emailAddress];
+                } else {
+                  elev["elevdata"] = {"namn":"","pim":"","klass":""};
+                }
+                return elev;
+              }
+              function elevData(elev){
+                if(klass){
+                  return (elev.elevdata.klass == klass);
+                }
+                else {
+                  return 1;
+                } 
+              }
               var final = this.courses[i];
               final.courseWork = this.works[this.show].sort(byTaskName).filter(baraprov);
-              final.students = this.students[this.show].map(elev => elev.profile);
+              final.students = this.students[this.show].map(elev => elev.profile).map(addElevData).filter(elevData);
               final.submissions = this.submissions[this.show].reduce(toHash,{});
               out[final.id] = final;
             }
@@ -336,5 +377,6 @@
         onload="this.onload=function(){};handleClientLoad()"
         onreadystatechange="if (this.readyState === 'complete') this.onload()"></script>
     </div>
+    <script src="https://script.google.com/a/macros/educ.goteborg.se/s/AKfycbwxBjnMULnVOozXzGrYHqXdKIOno7QqGSFWbomx5vHJWC7MZQrGaXN3xg/exec?elever=1"></script>
   </body>
 </html>
