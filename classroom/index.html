@@ -122,7 +122,8 @@
                 </table>
               </div>
             </div>
-                <table class="table table-sm" v-if="show">
+            <div v-if="show">
+                <table class="table table-sm">
                   <thead class="thead-light">
                     <tr>
                       <th><a v-bind:href="courceData.alternateLink" target="_blank">{{ courceData.name }}</a></th>
@@ -161,6 +162,8 @@
                     </tr>
                   </tbody>
                 </table>
+            <button class="btn btn-sm btn-primary" v-on:click="prov = !prov">Prov</button>  
+            </div>
       </div>
       
       <script>
@@ -171,7 +174,8 @@
           students: {},
           works: {},
           submissions: {},
-          show: ""
+          show: "",
+          prov: false
         },
         computed: {
           courceData: function(){
@@ -183,6 +187,7 @@
           },
           courceDatas: function(){
            var out = {};
+           var prov = this.prov;
            for(var i = 0; i < this.courses.length; i++){
               function byTaskName( a, b ) {
   		if ( a.title < b.title ){
@@ -198,8 +203,11 @@
                 final[single.courseWorkId+single.userId] = single;
                 return final
               }
+              function baraprov(work){
+                return (work.title[0]=="P" || prov == false)
+              }
               var final = this.courses[i];
-              final.courseWork = this.works[this.show].sort(byTaskName);
+              final.courseWork = this.works[this.show].sort(byTaskName).filter(baraprov);
               final.students = this.students[this.show].map(elev => elev.profile);
               final.submissions = this.submissions[this.show].reduce(toHash,{});
               out[final.id] = final;
@@ -253,9 +261,9 @@
           },
           getSubmission: function (elevid, uppgift){
              var hittad = this.courceData.submissions[uppgift.id+elevid];
-             if (hittad) {
+             if(hittad){
                hittad["courseWork"] = uppgift;
-               if (hittad.courseWork.maxPoints > 1  && hittad.assignedGrade > 0){
+               if (hittad.courseWork.maxPoints > 1 && hittad.assignedGrade > 0){
                  hittad["provResultat"] = Math.round(hittad.assignedGrade / hittad.courseWork.maxPoints * 100);
                  if(hittad["provResultat"] < 50){
                    hittad["provNiva"] = "bg-danger";
@@ -267,16 +275,25 @@
                }
                return hittad;
              }
-             return {"state":""};
+             return {"state":"","alternateLink":""};
           },
           getStudents: function (){
             var app = this;
             this.courses.forEach(function(kurs){
+              var newstudents = [];
               var lkurs = kurs;
               function students(data){
-                app.students[lkurs.id] = data.result.students;
+                newstudents = newstudents.concat(data.result.students);
+                if(data.result.nextPageToken){
+                  gapi.client.request(
+                    {"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/students",
+                    "params":{"pageSize":64,"pageToken":data.result.nextPageToken}}
+                    ).then(students);
+                } else {
+                  app.$set(app.students, lkurs.id, newstudents);
+                }
               }                
-              gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/students","params":{}}).then(students)
+              gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/students","params":{"pageSize":64}}).then(students)
             })
           },
           getCourseWork: function (){
@@ -284,7 +301,7 @@
             this.courses.forEach(function(kurs){
               var lkurs = kurs
               function courseWork(data){
-                 app.works[lkurs.id] = data.result.courseWork;
+                 app.$set(app.works, lkurs.id, data.result.courseWork);
                 }
               gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/courseWork","params":{}}).then(courseWork)
             })
@@ -302,7 +319,7 @@
                       "params":{"pageToken":data.result.nextPageToken}}
                       ).then(courseWorkSubmission);
                 } else {
-                  app.submissions[lkurs.id] = newsubmissions;
+                  app.$set(app.submissions[lkurs.id] = newsubmissions);
                 }
               }
               gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/courseWork/-/studentSubmissions","params":{}}).then(courseWorkSubmission)
