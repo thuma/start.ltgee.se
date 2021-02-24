@@ -267,7 +267,6 @@
               app.getCourseWork();
               app.getStudents();
               app.getStudentSubmissions();
-              app.save();
             }
             gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses","params":{"courseStates":"ACTIVE"}}).then(indata)
           },
