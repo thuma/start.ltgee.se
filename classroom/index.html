@@ -10,6 +10,10 @@
      }
      .nolnb {
        white-space: nowrap;
+     } 
+     tbody.oversikt tr td:nth-child(1) {  /*the first cell in each tr*/
+       position: sticky;
+       left:0px;
      }
     </style>
     <title>Classroom FGUI</title>
@@ -138,7 +142,7 @@
                       </th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody class="oversikt">
                     <tr v-for="student in courceData.students">
                       <td class="bg-light nolnb">
                         <input type="checkbox" name="students" />
