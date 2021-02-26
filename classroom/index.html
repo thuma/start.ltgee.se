@@ -29,7 +29,8 @@
           "https://www.googleapis.com/auth/classroom.profile.photos",
           "https://www.googleapis.com/auth/classroom.courses.readonly",
           "https://www.googleapis.com/auth/classroom.coursework.students.readonly",
-          "https://www.googleapis.com/auth/classroom.student-submissions.students.readonly"
+          "https://www.googleapis.com/auth/classroom.student-submissions.students.readonly",
+          "https://www.googleapis.com/auth/classroom.topics.readonly"
         ]
 
         var SCOPE = Scopes.join(" ");
@@ -178,7 +179,10 @@
                     </tr>
                   </tbody>
                 </table>
-            <button class="btn btn-sm btn-primary" v-on:click="prov = !prov">Prov</button>  
+            <button class="btn btn-sm btn-primary" v-on:click="prov = !prov">Prov</button>
+            <template v-for="topic in courceData.topics">
+            <button class="btn btn-sm btn-primary" v-on:click="courceData.topic = topic">{{topic.name}}</button>&nbsp;
+            </template>  
             </div>
       </div>
       
@@ -190,6 +194,7 @@
           students: {},
           works: {},
           submissions: {},
+          topics: {},
           show: "",
           prov: false,
           elever: [],
@@ -274,6 +279,7 @@
               final.courseWork = this.works[this.show].sort(byTaskName).filter(baraprov);
               final.students = this.students[this.show].map(elev => elev.profile).map(addElevData).filter(elevData).sort(byName);
               final.submissions = this.submissions[this.show].reduce(toHash,{});
+              final.topics = this.topics[this.show];
               out[final.id] = final;
             }
           return out;
@@ -289,6 +295,7 @@
               app.courses = data.result.courses;
               app.getCourseWork();
               app.getStudents();
+              app.getTopics();
               app.getStudentSubmissions();
             }
             gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses","params":{"courseStates":"ACTIVE"}}).then(indata)
@@ -311,7 +318,7 @@
           },
           save: function(){
              var app = this;
-             ["courses","students","works","submissions"].forEach(function(name){
+             ["courses","students","works","submissions","topics"].forEach(function(name){
                localStorage.setItem(name, LZString.compress(JSON.stringify(app[name])));
              });
           },
@@ -368,6 +375,16 @@
                 }
               gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/courseWork","params":{}}).then(courseWork)
             })
+          },
+          getTopics: function (){
+            var app = this;
+            this.courses.forEach(function(kurs){
+              var lkurs = kurs;
+              function newTopics(data){
+                 app.$set(app.topics, lkurs.id, data.result.topic);
+                }
+              gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/topics","params":{}}).then(newTopics)
+            });
           },
           getStudentSubmissions: function (){
             var app = this;
