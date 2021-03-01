@@ -154,7 +154,7 @@
                   <tbody class="oversikt">
                     <tr v-for="student in courceData.students">
                       <td class="bg-light nolnb">
-                        <input type="checkbox" name="students" />
+                        <input type="checkbox" v-model:value="student.vald"/>
                         <a v-bind:href="'mailto:'+student.emailAddress">{{ student.name.fullName }}</a>
                       </td>
                       <td>
@@ -187,10 +187,22 @@
                     </tr>
                   </tbody>
                 </table>
+                <div class="input-group mb-3">
+                  <input id="emails" v-bind:value="courceData.multiemail" class="form-control" />
+                  <div class="input-group-append">
+                    <button onclick="copy()" class="btn btn-outline-secondary" type="button">Kopiera</button>
+                  </div>
+                </div>
             </div>
       </div>
       
       <script>
+      function copy(){
+        var copyText = document.getElementById("emails");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        document.execCommand("copy");
+      }
       var app = new Vue({
         el: '#classroom',
         data: {
@@ -287,6 +299,7 @@
               var topic = final.topic;
               final.courseWork = this.works[this.show].sort(byTaskName).filter(baravalda);
               final.students = this.students[this.show].map(elev => elev.profile).map(addElevData).filter(elevData).sort(byName);
+              final.multiemail = final.students.filter(student=>student.vald).map(student=>student.emailAddress).join(";");
               final.submissions = this.submissions[this.show].reduce(toHash,{});
               final.topics = this.topics[this.show];
               out[final.id] = final;
