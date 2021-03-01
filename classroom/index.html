@@ -132,6 +132,14 @@
               </div>
             </div>
             <div v-if="show">
+              <button v-if="prov" class="btn btn-sm btn-primary" v-on:click="prov = false">Prov</button>
+              <button v-else="" class="btn btn-sm btn-outline-primary" v-on:click="prov = true">Prov</button>
+              &nbsp;
+              <template v-for="topic in courceData.topics">
+                <button v-if="courceData.topic && courceData.topic.topicId == topic.topicId " class="btn btn-sm btn-primary" v-on:click="setTopic(courceData,false)">{{topic.name}}</button>
+                <button v-else="" class="btn btn-sm btn-outline-primary" v-on:click="setTopic(courceData,topic)">{{topic.name}}</button>
+                &nbsp;
+              </template>
                 <table class="table table-sm">
                   <thead class="thead-light">
                     <tr>
@@ -179,10 +187,6 @@
                     </tr>
                   </tbody>
                 </table>
-            <button class="btn btn-sm btn-primary" v-on:click="prov = !prov">Prov</button>
-            <template v-for="topic in courceData.topics">
-            <button class="btn btn-sm btn-primary" v-on:click="courceData.topic = topic">{{topic.name}}</button>&nbsp;
-            </template>  
             </div>
       </div>
       
@@ -236,8 +240,12 @@
                 final[single.courseWorkId+single.userId] = single;
                 return final
               }
-              function baraprov(work){
-                return (work.title[0]=="P" || prov == false)
+              function baravalda(work){
+                 if(topic){
+                   return (work.topicId == topic.topicId) 
+                 } else {
+                   return (work.title[0]=="P" || prov == false)
+                 }
               }
 
               function addElevData(elev){
@@ -276,7 +284,8 @@
                 return 0;
               }
               var final = this.courses[i];
-              final.courseWork = this.works[this.show].sort(byTaskName).filter(baraprov);
+              var topic = final.topic;
+              final.courseWork = this.works[this.show].sort(byTaskName).filter(baravalda);
               final.students = this.students[this.show].map(elev => elev.profile).map(addElevData).filter(elevData).sort(byName);
               final.submissions = this.submissions[this.show].reduce(toHash,{});
               final.topics = this.topics[this.show];
@@ -287,8 +296,17 @@
         },
         created: function(){
           this.load();
+          setInterval(this.save,30000);
         },
         methods: {
+          setTopic: function(cource, topic){
+            if(cource.topic && cource.topic.topicId == topic.topicId){
+              this.$set(cource, "topic", false); 
+            }
+            else {
+              this.$set(cource, "topic", topic);
+            }
+          },
           update: function(){
             var app = this;
             function indata(data){
