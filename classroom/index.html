@@ -170,7 +170,7 @@
                         <a target="_blank" v-bind:href="work.alternateLink">☐</a>
                       </td>
                       <td v-else-if="work.state == 'TURNED_IN'" class="bg-info">
-                        <a target="_blank" v-bind:href="work.alternateLink">🆕</a>
+                        <a target="_blank" v-bind:href="work.alternateLink">☑</a>
                       </td>
                       <td v-else-if="work.provResultat > 1" v-bind:class="work.provNiva">
                         <a target="_blank" style="color:black;" v-bind:href="work.alternateLink">
@@ -309,7 +309,6 @@
         },
         created: function(){
           this.load();
-          setInterval(this.save,30000);
         },
         methods: {
           setTopic: function(cource, topic){
