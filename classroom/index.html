@@ -2,7 +2,11 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+      integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+      crossorigin="anonymous">
     <script src="lz-string.js"></script>
     <style>
      .whitep {
@@ -132,9 +136,11 @@
               </div>
             </div>
             <div v-if="show">
+              <button class="btn btn-sm btn-secondary" v-on:click="update">Updatera</button> &nbsp;
+              <button class="btn btn-sm btn-secondary" v-on:click="save">Spara</button> &nbsp;
               <button v-if="prov" class="btn btn-sm btn-primary" v-on:click="prov = false">Prov</button>
               <button v-else="" class="btn btn-sm btn-outline-primary" v-on:click="prov = true">Prov</button>
-              &nbsp;
+              &nbsp;              
               <template v-for="topic in courceData.topics">
                 <button v-if="courceData.topic && courceData.topic.topicId == topic.topicId " class="btn btn-sm btn-primary" v-on:click="setTopic(courceData,false)">{{topic.name}}</button>
                 <button v-else="" class="btn btn-sm btn-outline-primary" v-on:click="setTopic(courceData,topic)">{{topic.name}}</button>
@@ -332,7 +338,7 @@
           },
           load: function(){
              var app = this;
-             ["courses","students","works","submissions"].forEach(function(name){
+             ["courses","students","works","submissions","topics"].forEach(function(name){
 		var data = localStorage.getItem(name);
       		if(data){
         	  data = JSON.parse(LZString.decompress(data));
