@@ -15,6 +15,11 @@
        position: sticky;
        left:0px;
      }
+     @media print {
+       .noprint {
+         visibility: hidden;
+       }
+     }
     </style>
     <title>Classroom FGUI</title>
   </head>
@@ -114,7 +119,7 @@
       <script src="../js/vue2.js"></script>
       
       <div id="classroom">
-            <div class="card mt-3">
+            <div class="card mt-3 noprint">
               <div class="card-body">
                 <h5 class="card-title">Kurser</h5>
                 <p class="card-text">Aktiva kurser</p>
@@ -132,6 +137,7 @@
               </div>
             </div>
             <div v-if="show">
+              <div class="noprint">
               <button class="btn btn-sm btn-secondary" v-on:click="update">Updatera</button> &nbsp;
               <button class="btn btn-sm btn-secondary" v-on:click="save">Spara</button> &nbsp;
               <button v-if="prov" class="btn btn-sm btn-primary" v-on:click="prov = false">Prov</button>
@@ -142,6 +148,7 @@
                 <button v-else="" class="btn btn-sm btn-outline-primary" v-on:click="setTopic(courceData,topic)">{{topic.name}}</button>
                 &nbsp;
               </template>
+              </div>
                 <table class="table table-sm">
                   <thead class="thead-light">
                     <tr>
@@ -159,7 +166,7 @@
                         <input type="checkbox" v-model:value="student.vald"/>
                         <a v-bind:href="'mailto:'+student.emailAddress">{{ student.name.fullName }}</a>
                       </td>
-                      <td>
+                      <td class="noprint">
                         <a
                           target="_blank"
                           class="btn btn-sm btn-outline-info"
@@ -168,7 +175,13 @@
                       </td>
                       <td><button v-on:click="klass=student.elevdata.klass" class="btn btn-sm">{{ student.elevdata.klass }}</button></td>
                       <template v-for="work in getSubmissions(student.id)">
-                      <td v-if="['NEW','CREATED','RECLAIMED_BY_STUDENT'].indexOf(work.state) > -1 " class="bg-light">
+                      <td v-if="['NEW','CREATED','RECLAIMED_BY_STUDENT'].indexOf(work.state) > -1 && !work.courseWork.dueDate" class="bg-light">
+                        <a target="_blank" v-bind:href="work.alternateLink">☐</a>
+                      </td>
+                      <td v-else-if="['NEW','CREATED','RECLAIMED_BY_STUDENT'].indexOf(work.state) > -1 && !expired(work)" class="bg-dark">
+                        <a target="_blank" v-bind:href="work.alternateLink">☐</a>
+                      </td>
+                      <td v-else-if="['NEW','CREATED','RECLAIMED_BY_STUDENT'].indexOf(work.state) > -1 && expired(work)" class="bg-danger">
                         <a target="_blank" v-bind:href="work.alternateLink">☐</a>
                       </td>
                       <td v-else-if="work.state == 'TURNED_IN'" class="bg-info">
@@ -189,7 +202,7 @@
                     </tr>
                   </tbody>
                 </table>
-                <div class="input-group mb-3">
+                <div class="input-group mb-3 noprint">
                   <input id="emails" v-bind:value="courceData.multiemail" class="form-control" />
                   <div class="input-group-append">
                     <button onclick="copy()" class="btn btn-outline-secondary" type="button">Kopiera</button>
@@ -313,6 +326,14 @@
           this.load();
         },
         methods: {
+          expired: function(work){
+            var handin = work.courseWork.dueDate;
+            var then = new Date(handin.year.toString()+"-"+handin.month.toString()+"-"+handin.day.toString());
+            var now = new Date();
+            console.log(now);
+	    console.log(then);
+            return then < now;
+          },
           setTopic: function(cource, topic){
             if(cource.topic && cource.topic.topicId == topic.topicId){
               this.$set(cource, "topic", false); 
@@ -440,6 +461,7 @@
         }
       })
       </script>
+      <div class="noprint">
       <button id="sign-in-or-out-button" class="btn btn-secondary">Logga in</button>
       <button id="revoke-access-button" class="btn btn-secondary">Stäng av</button>
       <div id="auth-status" style="display: inline; padding-left: 25px"></div>
@@ -447,6 +469,7 @@
       <script async defer src="https://apis.google.com/js/api.js"
         onload="this.onload=function(){};handleClientLoad()"
         onreadystatechange="if (this.readyState === 'complete') this.onload()"></script>
+      </div>
     </div>
     <script src="https://script.google.com/a/macros/educ.goteborg.se/s/AKfycbwxBjnMULnVOozXzGrYHqXdKIOno7QqGSFWbomx5vHJWC7MZQrGaXN3xg/exec?elever=1"></script>
   </body>
