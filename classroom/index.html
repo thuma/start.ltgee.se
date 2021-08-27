@@ -126,7 +126,7 @@
                 <p class="card-text">Aktiva kurser</p>
                 <table class="card-body table table-sm">
                   <tbody>
-                    <tr v-for="klass in courses">
+                    <tr v-for="klass in courses_byname">
                       <td>{{ klass.name }}</td>
                       <td><a href="#" v-on:click="show=klass.id">Översikt</a></td>
                       <td><a v-bind:href="klass.alternateLink" target="_blank">Classroom</a></td>
@@ -233,6 +233,20 @@
           klass: ""
         },
         computed: {
+          courses_byname: function(){
+            this.courses.sort(function(a, b) {
+              var nameA = a.name.toUpperCase().split(" ").join("");
+              var nameB = b.name.toUpperCase().split(" ").join("");
+              if (nameA < nameB) {
+                return -1;
+              }
+              if (nameA > nameB) {
+                return 1;
+              }
+              return 0;
+            });
+            return this.courses;
+          },
           eleverByEmail: function(){
              var allaelever = this.elever;
              function tillmap(enmapp, enrad){
