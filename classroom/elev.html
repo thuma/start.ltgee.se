@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <script src="lz-string.js"></script>
+    <style>
+     .whitep {
+       color: white;
+     }
+     .nolnb {
+       white-space: nowrap;
+     } 
+     tbody.oversikt tr td:nth-child(1) {  /*the first cell in each tr*/
+       position: sticky;
+       left:0px;
+     }
+     @media print {
+       .noprint {
+         visibility: hidden;
+         position: absolute;
+       }
+     }
+    </style>
+    <title>Classroom FGUI</title>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <script>
+        var GoogleAuth;
+        var Scopes = [
+          "https://www.googleapis.com/auth/classroom.rosters.readonly",
+          "https://www.googleapis.com/auth/classroom.profile.emails",
+          "https://www.googleapis.com/auth/classroom.profile.photos",
+          "https://www.googleapis.com/auth/classroom.courses.readonly",
+          "https://www.googleapis.com/auth/classroom.coursework.me.readonly",
+          "https://www.googleapis.com/auth/classroom.student-submissions.me.readonly",
+          "https://www.googleapis.com/auth/classroom.topics.readonly"
+        ]
+
+        var SCOPE = Scopes.join(" ");
+        function handleClientLoad() {
+          // Load the API's client and auth2 modules.
+          // Call the initClient function after the modules load.
+          gapi.load('client:auth2', initClient);
+        }
+      
+        function initClient() {
+          // In practice, your app can retrieve one or more discovery documents.
+          var discoveryUrl = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
+      
+          // Initialize the gapi.client object, which app uses to make API requests.
+          // Get API key and client ID from API Console.
+          // 'scope' field specifies space-delimited list of access scopes.
+          gapi.client.init({
+              'apiKey': 'AIzaSyBJbdSNcDcq_C86__XSvsRHaF0GgLdRIDA',
+              'clientId': '895135418381-m1fmm24b5h76upit18r43f8su4pptld9.apps.googleusercontent.com',
+              'discoveryDocs': [discoveryUrl],
+              'scope': SCOPE
+          }).then(function () {
+            GoogleAuth = gapi.auth2.getAuthInstance();
+      
+            // Listen for sign-in state changes.
+            GoogleAuth.isSignedIn.listen(updateSigninStatus);
+      
+            // Handle initial sign-in state. (Determine if user is already signed in.)
+            var user = GoogleAuth.currentUser.get();
+            setSigninStatus();
+      
+            // Call handleAuthClick function when user clicks on
+            //      "Sign In/Authorize" button.
+            $('#sign-in-or-out-button').click(function() {
+              handleAuthClick();
+            });
+            $('#revoke-access-button').click(function() {
+              revokeAccess();
+            });
+          });
+        }
+      
+        function handleAuthClick() {
+          if (GoogleAuth.isSignedIn.get()) {
+            // User is authorized and has clicked "Sign out" button.
+            GoogleAuth.signOut();
+          } else {
+            // User is not signed in. Start Google auth flow.
+            GoogleAuth.signIn();
+          }
+        }
+      
+        function revokeAccess() {
+          GoogleAuth.disconnect();
+        }
+      
+        function setSigninStatus() {
+          var user = GoogleAuth.currentUser.get();
+          var isAuthorized = user.hasGrantedScopes('https://www.googleapis.com/auth/classroom.courses.readonly');
+          if (isAuthorized) {
+            app.update();
+            $('#sign-in-or-out-button').html('Logga ut');
+            $('#revoke-access-button').css('display', 'inline-block');
+            $('#auth-status').html('Du är inloggad');
+          } else {
+            $('#sign-in-or-out-button').html('Logga in');
+            $('#revoke-access-button').css('display', 'none');
+            $('#auth-status').html('Du är inte inloggad');
+          }
+        }
+      
+        function updateSigninStatus() {
+          setSigninStatus();
+        }
+
+        function elever(data){
+          app.$set(app, "elever", data);
+        }
+      </script>
+    
+      <script src="../js/vue2.js"></script>
+      
+      <div id="classroom">
+            <div class="card mt-3 noprint">
+              <div class="card-body">
+                <h5 class="card-title">Kurser</h5>
+                <p class="card-text">Aktiva kurser</p>
+                <table class="card-body table table-sm">
+                  <tbody>
+                    <tr v-for="klass in courses_byname">
+                      <td>{{ klass.name }}</td>
+                      <td><a href="#" v-on:click="show=klass.id">Översikt</a></td>
+                      <td><a v-bind:href="klass.alternateLink" target="_blank">Classroom</a></td>
+                      <td><a v-bind:href="'https://script.google.com/macros/s/AKfycbzDuxI8tB2RExex7w6AdAq-pQjZfqgY5YRqEfX5xTK4bZyLqxU/exec?course='+klass.id" target="_blank">Elevlänk</a></td>
+                      <td><a v-bind:href="'mailto:'+klass.courseGroupEmail" target="_blank">Gruppmail</a></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div v-if="show">
+              <div class="noprint">
+              <button class="btn btn-sm btn-secondary" v-on:click="update">Updatera</button> &nbsp;
+              <button class="btn btn-sm btn-secondary" v-on:click="save">Spara</button> &nbsp;
+              <button v-if="prov" class="btn btn-sm btn-primary" v-on:click="prov = false">Prov</button>
+              <button v-else="" class="btn btn-sm btn-outline-primary" v-on:click="prov = true">Prov</button>
+              &nbsp;              
+              <template v-for="topic in courceData.topics">
+                <button v-if="courceData.topic && courceData.topic.topicId == topic.topicId " class="btn btn-sm btn-primary" v-on:click="setTopic(courceData,false)">{{topic.name}}</button>
+                <button v-else="" class="btn btn-sm btn-outline-primary" v-on:click="setTopic(courceData,topic)">{{topic.name}}</button>
+                &nbsp;
+              </template>
+              </div>
+                <table class="table table-sm">
+                  <thead class="thead-light">
+                    <tr>
+                      <th><a v-bind:href="courceData.alternateLink" target="_blank">{{ courceData.name }}</a></th>
+                      <th>Pim</th>
+                      <th>Klass <button v-on:click="klass=''" class="btn btn-info btn-sm">alla</button></th>
+                      <th v-bind:title="work.title" v-for="work in courceData.courseWork">
+                        <a v-bind:href="work.alternateLink" target="_blank">{{ work.title.split(" ")[0] }}</a>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="oversikt">
+                    <tr v-for="student in courceData.students">
+                      <td class="bg-light nolnb">
+                        <input type="checkbox" v-model:value="student.vald"/>
+                        <a v-bind:href="'mailto:'+student.emailAddress">{{ student.name.fullName }}</a>
+                      </td>
+                      <td class="noprint">
+                        <a
+                          target="_blank"
+                          class="btn btn-sm btn-outline-info"
+                          role="button"
+                          v-bind:href="'https://hjarntorget.goteborg.se/pimWritePopup.do?recipient='+student.elevdata.pim">pim</button>
+                      </td>
+                      <td><button v-on:click="klass=student.elevdata.klass" class="btn btn-sm">{{ student.elevdata.klass }}</button></td>
+                      <template v-for="work in getSubmissions(student.id)">
+                      <td v-if="['NEW','CREATED','RECLAIMED_BY_STUDENT'].indexOf(work.state) > -1 && !work.courseWork.dueDate" class="bg-light">
+                        <a target="_blank" v-bind:href="work.alternateLink">☐</a>
+                      </td>
+                      <td v-else-if="['NEW','CREATED','RECLAIMED_BY_STUDENT'].indexOf(work.state) > -1 && !expired(work)" class="bg-dark">
+                        <a target="_blank" v-bind:href="work.alternateLink">☐</a>
+                      </td>
+                      <td v-else-if="['NEW','CREATED','RECLAIMED_BY_STUDENT'].indexOf(work.state) > -1 && expired(work)" class="bg-danger">
+                        <a target="_blank" v-bind:href="work.alternateLink">☐</a>
+                      </td>
+                      <td v-else-if="work.state == 'TURNED_IN'" class="bg-info">
+                        <a target="_blank" v-bind:href="work.alternateLink">☑</a>
+                      </td>
+                      <td v-else-if="work.provResultat > 1" v-bind:class="work.provNiva">
+                        <a target="_blank" style="color:black;" v-bind:href="work.alternateLink">
+                          {{ work.provResultat }}%
+                        </a>
+                      </td>
+                      <td v-else-if="work.state == 'RETURNED' && work.assignedGrade > 0 " class="bg-success">
+                        <a target="_blank" v-bind:href="work.alternateLink">☑</a></td>
+                      <td v-else-if="work.state == 'RETURNED'" class="bg-warning">
+                        <a target="_blank" v-bind:href="work.alternateLink">↩</a></td>
+                      </td>
+                      <td v-else="">{{work.state}}</td>
+                      </template>
+                    </tr>
+                  </tbody>
+                </table>
+                <div class="input-group mb-3 noprint">
+                  <input id="emails" v-bind:value="courceData.multiemail" class="form-control" />
+                  <div class="input-group-append">
+                    <button onclick="copy()" class="btn btn-outline-secondary" type="button">Kopiera</button>
+                  </div>
+                </div>
+            </div>
+      </div>
+      
+      <script>
+      function copy(){
+        var copyText = document.getElementById("emails");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        document.execCommand("copy");
+      }
+      var app = new Vue({
+        el: '#classroom',
+        data: {
+          courses: [],
+          students: {},
+          works: {},
+          submissions: {},
+          topics: {},
+          show: "",
+          prov: false,
+          elever: [],
+          klass: ""
+        },
+        computed: {
+          courses_byname: function(){
+            this.courses.sort(function(a, b) {
+              var nameA = a.name.toUpperCase().split(" ").join("");
+              var nameB = b.name.toUpperCase().split(" ").join("");
+              if (nameA < nameB) {
+                return -1;
+              }
+              if (nameA > nameB) {
+                return 1;
+              }
+              return 0;
+            });
+            return this.courses;
+          },
+          eleverByEmail: function(){
+             var allaelever = this.elever;
+             function tillmap(enmapp, enrad){
+               enmapp[enrad[1]] = {"namn":enrad[0],"pim":enrad[3],"klass":enrad[4]};
+               return enmapp;
+             }
+             return this.elever.reduce(tillmap, {});
+          },
+          courceData: function(){
+            if (this.show) {
+              return this.courceDatas[this.show];
+            } else {
+              return {};
+            }
+          },
+          courceDatas: function(){
+           var out = {};
+           var prov = this.prov;
+           var klass = this.klass;
+           var byEmail = this.eleverByEmail;
+           for(var i = 0; i < this.courses.length; i++){
+              function byTaskName( a, b ) {
+  		if ( a.title < b.title ){
+    		  return -1;
+  		}
+                if ( a.title > b.title ){
+                  return 1;
+                }
+                return 0;
+              }
+              
+              function toHash(final, single) {
+                final[single.courseWorkId+single.userId] = single;
+                return final
+              }
+              function baravalda(work){
+                 if(topic){
+                   return (work.topicId == topic.topicId) 
+                 } else {
+                   return (work.title[0]=="P" || prov == false)
+                 }
+              }
+
+              function addElevData(elev){
+                if(byEmail[elev.emailAddress]){
+                  elev["elevdata"] = byEmail[elev.emailAddress];
+                } else {
+                  elev["elevdata"] = {"namn":"","pim":"","klass":""};
+                }
+                return elev;
+              }
+              function elevData(elev){
+                if(klass){
+                  return (elev.elevdata.klass == klass);
+                }
+                else {
+                  return 1;
+                } 
+              }
+
+             function byName( a, b ) {
+                if ( a.elevdata.klass == b.elevdata.klass ){
+                  if ( a.name.fullName < b.name.fullName ){
+                    return -1;
+                  }
+                  if ( a.name.fullName > b.name.fullName ){
+                    return 1;
+                  } 
+                } else {
+                  if ( a.elevdata.klass < b.elevdata.klass ){
+                    return -1;
+                  }
+                  if ( a.elevdata.klass > b.elevdata.klass ){
+                    return 1;
+                  }
+                }
+                return 0;
+              }
+              var final = this.courses[i];
+              var topic = final.topic;
+              final.courseWork = this.works[this.show].sort(byTaskName).filter(baravalda);
+              final.students = this.students[this.show].map(elev => elev.profile).map(addElevData).filter(elevData).sort(byName);
+              final.multiemail = final.students.filter(student=>student.vald).map(student=>student.emailAddress).join(";");
+              final.submissions = this.submissions[this.show].reduce(toHash,{});
+              final.topics = this.topics[this.show];
+              out[final.id] = final;
+            }
+          return out;
+          }
+        },
+        created: function(){
+          this.load();
+        },
+        methods: {
+          expired: function(work){
+            var handin = work.courseWork.dueDate;
+            var then = new Date(handin.year.toString()+"-"+handin.month.toString()+"-"+handin.day.toString());
+            var now = new Date();
+            console.log(now);
+	    console.log(then);
+            return then < now;
+          },
+          setTopic: function(cource, topic){
+            if(cource.topic && cource.topic.topicId == topic.topicId){
+              this.$set(cource, "topic", false); 
+            }
+            else {
+              this.$set(cource, "topic", topic);
+            }
+          },
+          update: function(){
+            var app = this;
+            function indata(data){
+              app.courses = data.result.courses;
+              app.getCourseWork();
+              app.getStudents();
+              app.getTopics();
+              app.getStudentSubmissions();
+            }
+            gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses","params":{"courseStates":"ACTIVE"}}).then(indata)
+          },
+          load: function(){
+             var app = this;
+             ["courses","students","works","submissions","topics"].forEach(function(name){
+		var data = localStorage.getItem(name);
+      		if(data){
+        	  data = JSON.parse(LZString.decompress(data));
+                } else {
+                  data = [];
+                }
+                if(name == "courses"){
+                  app.courses = data;
+                } else {
+                  app[name] = Object.assign({}, app[name], data);
+                }
+             });
+          },
+          save: function(){
+             var app = this;
+             ["courses","students","works","submissions","topics"].forEach(function(name){
+               localStorage.setItem(name, LZString.compress(JSON.stringify(app[name])));
+             });
+          },
+          getSubmissions: function (elevid){
+              var alla = [];
+              for(var i = 0; i < this.courceData.courseWork.length; i++){
+                alla.push(this.getSubmission(elevid, this.courceData.courseWork[i]));
+              }
+              return alla;
+          },
+          getSubmission: function (elevid, uppgift){
+             var hittad = this.courceData.submissions[uppgift.id+elevid];
+             if(hittad){
+               hittad["courseWork"] = uppgift;
+               if (hittad.courseWork.maxPoints > 1 && hittad.assignedGrade > 0){
+                 hittad["provResultat"] = Math.round(hittad.assignedGrade / hittad.courseWork.maxPoints * 100);
+                 if(hittad["provResultat"] < 50){
+                   hittad["provNiva"] = "bg-danger";
+                 } else if (hittad["provResultat"] < 55) {
+                   hittad["provNiva"] = "bg-warning";
+                 } else { 
+                   hittad["provNiva"] = "bg-success";
+                 }
+               }
+               return hittad;
+             }
+             return {"state":"","alternateLink":""};
+          },
+          getStudents: function (){
+            var app = this;
+            this.courses.forEach(function(kurs){
+              var newstudents = [];
+              var lkurs = kurs;
+              function students(data){
+                newstudents = newstudents.concat(data.result.students);
+                if(data.result.nextPageToken){
+                  gapi.client.request(
+                    {"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/students",
+                    "params":{"pageSize":64,"pageToken":data.result.nextPageToken}}
+                    ).then(students);
+                } else {
+                  app.$set(app.students, lkurs.id, newstudents);
+                }
+              }                
+              gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/students","params":{"pageSize":64}}).then(students)
+            })
+          },
+          getCourseWork: function (){
+            var app = this;
+            this.courses.forEach(function(kurs){
+              var lkurs = kurs
+              function courseWork(data){
+                 app.$set(app.works, lkurs.id, data.result.courseWork);
+                }
+              gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/courseWork","params":{}}).then(courseWork)
+            })
+          },
+          getTopics: function (){
+            var app = this;
+            this.courses.forEach(function(kurs){
+              var lkurs = kurs;
+              function newTopics(data){
+                 app.$set(app.topics, lkurs.id, data.result.topic);
+                }
+              gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/topics","params":{}}).then(newTopics)
+            });
+          },
+          getStudentSubmissions: function (){
+            var app = this;
+            this.courses.forEach(function(kurs){
+              var lkurs = kurs
+              var newsubmissions = [];
+              function courseWorkSubmission(data){
+                newsubmissions = newsubmissions.concat(data.result.studentSubmissions);
+                if(data.result.nextPageToken){
+                  gapi.client.request(
+                      {"path":"https://classroom.googleapis.com/v1/courses/"+lkurs.id+"/courseWork/-/studentSubmissions",
+                      "params":{"pageToken":data.result.nextPageToken}}
+                      ).then(courseWorkSubmission);
+                } else {
+                  app.$set(app.submissions[lkurs.id] = newsubmissions);
+                }
+              }
+              gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/courseWork/-/studentSubmissions","params":{}}).then(courseWorkSubmission)
+            })
+          }
+        }
+      })
+      </script>
+      <div class="noprint">
+      <button id="sign-in-or-out-button" class="btn btn-secondary">Logga in</button>
+      <button id="revoke-access-button" class="btn btn-secondary">Stäng av</button>
+      <div id="auth-status" style="display: inline; padding-left: 25px"></div>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+      <script async defer src="https://apis.google.com/js/api.js"
+        onload="this.onload=function(){};handleClientLoad()"
+        onreadystatechange="if (this.readyState === 'complete') this.onload()"></script>
+      </div>
+    </div>
+    <script src="https://script.google.com/a/macros/educ.goteborg.se/s/AKfycbwxBjnMULnVOozXzGrYHqXdKIOno7QqGSFWbomx5vHJWC7MZQrGaXN3xg/exec?elever=1"></script>
+  </body>
+</html>
