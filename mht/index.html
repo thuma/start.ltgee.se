@@ -6,6 +6,7 @@
         <style>
             body {
                 margin: 0;            /* Reset default margin */
+                background: #099900;
             }
             iframe {
                 display: block;       /* iframes are inline by default */
@@ -15,9 +16,21 @@
                 width: 100vw;
             }
         </style>
+        <script>
+            function status(ok){
+                if(ok){
+                    window.location.href='https://start.ltgee.se/quit';
+                }
+            }
+            function check(){
+                let s = document.createElement("script");
+                s.src = "https://script.google.com/macros/s/AKfycbyFbqdTilpQw66nnUwGqDCU24WAKg9veXWTmdPYxy5vo77wevMd/exec?signatur=mht";
+                document.body.appendChild(s);      
+            }
+        </script>
     </head>
 <body>
-  <a href="/quit">Stäng</a>
+  <button type="button" onclick="check()">Stäng</button>
   <iframe src="https://api.socrative.com/rc/ZpYUha">
   </iframe>
 </body>
