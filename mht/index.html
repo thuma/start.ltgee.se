@@ -3,14 +3,22 @@
     <head>
         <title>Quiz-status</title>
         <meta charset="UTF-8">
+        <style>
+            body {
+                margin: 0;            /* Reset default margin */
+            }
+            iframe {
+                display: block;       /* iframes are inline by default */
+                background: #000;
+                border: none;         /* Reset default border */
+                height: 95vh;        /* Viewport-relative units */
+                width: 100vw;
+            }
+        </style>
     </head>
 <body>
-  <iframe id="inlineFrameExample"
-    title="Inline Frame Example"
-    width="300"
-    height="200"
-    src="https://www.openstreetmap.org/export/embed.html?bbox=-0.004017949104309083%2C51.47612752641776%2C0.00030577182769775396%2C51.478569861898606&layer=mapnik">
-  </iframe>
   <a href="/quit">Stäng</a>
+  <iframe src="https://api.socrative.com/rc/ZpYUha">
+  </iframe>
 </body>
 </html> 
