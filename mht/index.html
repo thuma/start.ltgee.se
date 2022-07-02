@@ -17,23 +17,28 @@
             }
         </style>
         <script>
+            var signatur = "";
+            signatur = window.location.hash.split("#")[1];
             function status(ok){
                 if(ok){
                     window.location.href='https://start.ltgee.se/quit';
                 } else {
-                    window.alert("Quizet inte slut");
+                    window.alert("Quizet är inte slut.");
                 }
             }
-            function check(){
+            function url(inurl){
+                document.getElementById("iframe").setAttribute("src", inurl);
+            }
+            function check(query){
                 let s = document.createElement("script");
-                s.src = "https://script.google.com/macros/s/AKfycbyFbqdTilpQw66nnUwGqDCU24WAKg9veXWTmdPYxy5vo77wevMd/exec?signatur=mht";
+                s.src = "https://script.google.com/macros/s/AKfycbyFbqdTilpQw66nnUwGqDCU24WAKg9veXWTmdPYxy5vo77wevMd/exec?"+query;
                 document.body.appendChild(s);      
             }
         </script>
     </head>
 <body>
-  <button type="button" onclick="check()">Stäng</button>
-  <iframe src="https://api.socrative.com/rc/ZpYUha">
-  </iframe>
+    <button type="button" onclick="check('signatur='+signatur+'&type=status')">Stäng</button>
+    <iframe id="iframe" src="about:blank"></iframe>
 </body>
+<script>check("signatur="+signatur+"&type=url")</script>
 </html> 
