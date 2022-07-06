@@ -12,7 +12,7 @@
     <button id="signout_button" onclick="handleSignoutClick()">Sign Out</button>
 
     <pre id="content" style="white-space: pre-wrap;"></pre>
-
+    <input id="idinput"><button type="button" onclick="getById()">Ladda ner</button>
     <script type="text/javascript">
       /* exported gapiLoaded */
       /* exported gisLoaded */
@@ -123,16 +123,37 @@
        * Creates a new 'Hello world' script.
        */
       var table = [];
-      async function getById(id){
+      async function getById(){
+          var id = document.getElementById("idinput").value;
           response = await gapi.client.forms.forms.get({"formId":id});
           formdata = JSON.parse(response.body);
           formdata.items.forEach(function(item){
-            console.log(item)
-            table.push(["Multiple choice",item.title+"(Gruppsvar)"].concat(item.questionItem.question.choiceQuestion.options.map(opt=>opt.value).concat("","","","","").slice(0,5)));
-            table.push(["Multiple choice",item.title+"(Egensvar)",].concat(item.questionItem.question.choiceQuestion.options.map(opt=>opt.value).concat("","","","","").slice(0,5).concat(
-                item.questionItem.question.grading.correctAnswers.answers.map(opt=>opt.value).concat(["","","","",""]).slice(0,5))));
+            function id2abc(row){
+              var namn = ["A","B","C","D","E"];
+              return namn[row];
+            }
+
+            var svar = item.questionItem.question.choiceQuestion.options.map(opt=>opt.value).concat("","","","","").slice(0,5);
+            var right = item.questionItem.question.grading.correctAnswers.answers.map(opt=>opt.value)
+            var rightsvar = []; 
+            console.log(right);
+            console.log(right.length);
+            for(var i = 0; i < right.length; i++){
+              index = svar.indexOf(right[i]);
+              console.log(right);
+              if(index > -1){
+                rightsvar.push(index);
+              } 
+            }
+            rightsvar = rightsvar.concat("","","","","").slice(0,5);
+
+            table.push(["Multiple choice",item.title+"(Enskillt svar)"].concat(svar));
+            table.push(["Multiple choice",item.title+"(Gruppsvar)",].concat(svar).concat(rightsvar.map(id2abc)));
+            document.getElementById("content").innerHTML = table.map(row=>row.join(';')).join("\n");
         });
       }
+
+
 
     </script>
     <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
