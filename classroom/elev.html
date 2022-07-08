@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <script src="lz-string.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script async defer src="https://apis.google.com/js/api.js"></script>
     <style>
      .whitep {
        color: white;
@@ -25,90 +27,47 @@
     <title>Classroom FGUI</title>
   </head>
   <body>
+    <script src="https://accounts.google.com/gsi/client"></script>
+    <div id="g_id_onload"
+         data-client_id="895135418381-m1fmm24b5h76upit18r43f8su4pptld9.apps.googleusercontent.com"
+         data-callback="handleCredentialResponse"
+         data-auto_select="true"
+         class="noprint">
+    </div>
+    <div class="g_id_signin noprint" data-type="standard"></div>
     <div class="container-fluid">
       <script>
-        var GoogleAuth;
         var Scopes = [
+          "https://www.googleapis.com/auth/classroom.rosters",
           "https://www.googleapis.com/auth/classroom.rosters.readonly",
           "https://www.googleapis.com/auth/classroom.profile.emails",
           "https://www.googleapis.com/auth/classroom.profile.photos",
           "https://www.googleapis.com/auth/classroom.courses.readonly",
-          "https://www.googleapis.com/auth/classroom.coursework.me.readonly",
-          "https://www.googleapis.com/auth/classroom.student-submissions.me.readonly",
+          "https://www.googleapis.com/auth/classroom.coursework.students.readonly",
+          "https://www.googleapis.com/auth/classroom.student-submissions.students.readonly",
           "https://www.googleapis.com/auth/classroom.topics.readonly"
         ]
-
         var SCOPE = Scopes.join(" ");
-        function handleClientLoad() {
-          // Load the API's client and auth2 modules.
-          // Call the initClient function after the modules load.
-          gapi.load('client:auth2', initClient);
-        }
-      
-        function initClient() {
-          // In practice, your app can retrieve one or more discovery documents.
-          var discoveryUrl = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
-      
-          // Initialize the gapi.client object, which app uses to make API requests.
-          // Get API key and client ID from API Console.
-          // 'scope' field specifies space-delimited list of access scopes.
-          gapi.client.init({
-              'apiKey': 'AIzaSyBJbdSNcDcq_C86__XSvsRHaF0GgLdRIDA',
-              'clientId': '895135418381-m1fmm24b5h76upit18r43f8su4pptld9.apps.googleusercontent.com',
-              'discoveryDocs': [discoveryUrl],
-              'scope': SCOPE
-          }).then(function () {
-            GoogleAuth = gapi.auth2.getAuthInstance();
-      
-            // Listen for sign-in state changes.
-            GoogleAuth.isSignedIn.listen(updateSigninStatus);
-      
-            // Handle initial sign-in state. (Determine if user is already signed in.)
-            var user = GoogleAuth.currentUser.get();
-            setSigninStatus();
-      
-            // Call handleAuthClick function when user clicks on
-            //      "Sign In/Authorize" button.
-            $('#sign-in-or-out-button').click(function() {
-              handleAuthClick();
-            });
-            $('#revoke-access-button').click(function() {
-              revokeAccess();
-            });
+
+        async function intializeGapiClient() {
+          await gapi.client.init({
+            'apiKey': 'AIzaSyBJbdSNcDcq_C86__XSvsRHaF0GgLdRIDA',
+            'clientId': '895135418381-m1fmm24b5h76upit18r43f8su4pptld9.apps.googleusercontent.com'
           });
         }
-      
-        function handleAuthClick() {
-          if (GoogleAuth.isSignedIn.get()) {
-            // User is authorized and has clicked "Sign out" button.
-            GoogleAuth.signOut();
-          } else {
-            // User is not signed in. Start Google auth flow.
-            GoogleAuth.signIn();
-          }
-        }
-      
-        function revokeAccess() {
-          GoogleAuth.disconnect();
-        }
-      
-        function setSigninStatus() {
-          var user = GoogleAuth.currentUser.get();
-          var isAuthorized = user.hasGrantedScopes('https://www.googleapis.com/auth/classroom.courses.readonly');
-          if (isAuthorized) {
+        gapi.load('client', intializeGapiClient);
+        
+        function handleCredentialResponse(response){
+          const client = google.accounts.oauth2.initTokenClient({
+          client_id: '895135418381-m1fmm24b5h76upit18r43f8su4pptld9.apps.googleusercontent.com',
+          scope: SCOPE,
+          callback: (response) => {
+            gapi.client.setToken(response);
+            console.log(response);
             app.update();
-            $('#sign-in-or-out-button').html('Logga ut');
-            $('#revoke-access-button').css('display', 'inline-block');
-            $('#auth-status').html('Du är inloggad');
-          } else {
-            $('#sign-in-or-out-button').html('Logga in');
-            $('#revoke-access-button').css('display', 'none');
-            $('#auth-status').html('Du är inte inloggad');
-          }
-        }
-      
-        function updateSigninStatus() {
-          setSigninStatus();
+          },
+        });
+        client.requestAccessToken();
         }
 
         function elever(data){
@@ -475,16 +434,6 @@
         }
       })
       </script>
-      <div class="noprint">
-      <button id="sign-in-or-out-button" class="btn btn-secondary">Logga in</button>
-      <button id="revoke-access-button" class="btn btn-secondary">Stäng av</button>
-      <div id="auth-status" style="display: inline; padding-left: 25px"></div>
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-      <script async defer src="https://apis.google.com/js/api.js"
-        onload="this.onload=function(){};handleClientLoad()"
-        onreadystatechange="if (this.readyState === 'complete') this.onload()"></script>
-      </div>
     </div>
-    <script src="https://script.google.com/a/macros/educ.goteborg.se/s/AKfycbwxBjnMULnVOozXzGrYHqXdKIOno7QqGSFWbomx5vHJWC7MZQrGaXN3xg/exec?elever=1"></script>
   </body>
 </html>
