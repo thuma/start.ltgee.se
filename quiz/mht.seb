@@ -17,7 +17,7 @@
     <key>ignoreExitKeys</key>
     <true />
     <key>hashedQuitPassword</key>
-    <string>88E3E2154E120BE70568AB7C772F44FFC9EAF03F0BE03EFE8D993C6EB89E12F4</string>
+    <string>002BDFC07CF583330B0D9E8002D9DDDF9669E6DF4B543C2D0D6C21D18544A928</string>
     <key>exitKey1</key>
     <integer>2</integer>
     <key>exitKey2</key>
@@ -209,11 +209,11 @@
     <key>restartExamURL</key>
     <string />
     <key>restartExamUseStartURL</key>
-    <false />
+    <true />
     <key>restartExamText</key>
     <string />
     <key>restartExamPasswordProtected</key>
-    <true />
+    <false />
     <key>examSessionReconfigureAllow</key>
     <false />
     <key>examSessionReconfigureConfigURL</key>

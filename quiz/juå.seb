@@ -129,7 +129,7 @@
     <key>allowAudioCapture</key>
     <false />
     <key>allowBrowsingBackForward</key>
-    <true />
+    <false />
     <key>newBrowserWindowNavigation</key>
     <true />
     <key>removeBrowserProfile</key>
@@ -143,7 +143,7 @@
     <key>newBrowserWindowAllowReload</key>
     <true />
     <key>showReloadWarning</key>
-    <true />
+    <false />
     <key>newBrowserWindowShowReloadWarning</key>
     <false />
     <key>browserUserAgentWinDesktopMode</key>
@@ -1247,7 +1247,7 @@
     <key>enablePrintScreen</key>
     <false />
     <key>enableAltMouseWheel</key>
-    <true />
+    <false />
     <key>enableF1</key>
     <true />
     <key>enableF2</key>

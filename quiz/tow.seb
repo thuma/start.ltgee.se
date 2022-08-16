@@ -209,11 +209,11 @@
     <key>restartExamURL</key>
     <string />
     <key>restartExamUseStartURL</key>
-    <false />
+    <true />
     <key>restartExamText</key>
     <string />
     <key>restartExamPasswordProtected</key>
-    <true />
+    <false />
     <key>examSessionReconfigureAllow</key>
     <false />
     <key>examSessionReconfigureConfigURL</key>
