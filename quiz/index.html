@@ -5,15 +5,11 @@
         <meta charset="UTF-8">
         <style>
             body {
-                margin: 0;            /* Reset default margin */
-                background: #099900;
+                background: #dbdbdb;
+                text-align: center;
             }
-            iframe {
-                display: block;       /* iframes are inline by default */
-                background: #000;
-                border: none;         /* Reset default border */
-                height: 95vh;        /* Viewport-relative units */
-                width: 100vw;
+            a {
+                font-size: 50px;
             }
         </style>
         <script>
@@ -27,7 +23,7 @@
                 }
             }
             function url(inurl){
-                document.getElementById("iframe").setAttribute("src", inurl);
+                document.getElementById("link").setAttribute("href", inurl);
             }
             function check(query){
                 let s = document.createElement("script");
@@ -37,8 +33,12 @@
         </script>
     </head>
 <body>
-    <button type="button" onclick="check('signatur='+signatur+'&type=status')">Stäng</button>
-    <iframe id="iframe" src="about:blank"></iframe>
+    <br>
+    <br>
+    <a id="link" href="javscript:">Starta</a>
+    <br>
+    <br>
+    <a onclick="check('signatur='+signatur+'&type=status')" href="javscript:">Stäng</a>
 </body>
 <script>check("signatur="+signatur+"&type=url")</script>
 </html> 
