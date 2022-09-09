@@ -126,7 +126,7 @@
                           target="_blank"
                           class="btn btn-sm btn-outline-info"
                           role="button"
-                          v-bind:href="'https://hjarntorget.goteborg.se/pimWritePopup.do?recipient='+student.elevdata.pim">pim</button>
+                          v-bind:href="'https://www.vklass.se/Messaging/MessageCompose.aspx?uid='+student.elevdata.pim">pim</button>
                       </td>
                       <td><button v-on:click="klass=student.elevdata.klass" class="btn btn-sm">{{ student.elevdata.klass }}</button></td>
                       <template v-for="work in getSubmissions(student.id)">
