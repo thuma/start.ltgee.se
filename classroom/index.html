@@ -109,6 +109,7 @@
                     <tr>
                       <th><a v-bind:href="courceData.alternateLink" target="_blank">{{ courceData.name }}</a></th>
                       <th>Pim</th>
+                      <th>Närvaro</th>
                       <th>Klass <button v-on:click="klass=''" class="btn btn-info btn-sm">alla</button></th>
                       <th v-bind:title="work.title" v-for="work in courceData.courseWork">
                         <a v-bind:href="work.alternateLink" target="_blank">{{ work.title.split(" ")[0] }}</a>
