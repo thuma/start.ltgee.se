@@ -364,10 +364,19 @@
              if(hittad){
                hittad["courseWork"] = uppgift;
                if (hittad.courseWork.maxPoints > 1 && hittad.assignedGrade > 0){
+
+                var min = 50;
+                 if(hittad.courseWork.description && hittad.courseWork.description.startsWith("E=")){
+                  var epoints = Number(
+                      hittad.courseWork.description.split("=")[1].split("p")[0]
+                      );
+                  var min = Math.round( epoints / hittad.courseWork.maxPoints * 100);
+                 }
+
                  hittad["provResultat"] = Math.round(hittad.assignedGrade / hittad.courseWork.maxPoints * 100);
-                 if(hittad["provResultat"] < 50){
+                 if(hittad["provResultat"] < min){
                    hittad["provNiva"] = "bg-danger";
-                 } else if (hittad["provResultat"] < 55) {
+                 } else if (hittad["provResultat"] < (min+4) ) {
                    hittad["provNiva"] = "bg-warning";
                  } else { 
                    hittad["provNiva"] = "bg-success";

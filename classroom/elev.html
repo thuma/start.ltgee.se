@@ -84,11 +84,8 @@
                 <table class="card-body table table-sm">
                   <tbody>
                     <tr v-for="klass in courses_byname">
-                      <td>{{ klass.name }}</td>
-                      <td><a href="#" v-on:click="show=klass.id">Översikt</a></td>
+                      <td><a href="#down" v-on:click="show=klass.id">{{ klass.name }}</a></td>
                       <td><a v-bind:href="klass.alternateLink" target="_blank">Classroom</a></td>
-                      <td><a v-bind:href="'https://script.google.com/macros/s/AKfycbzDuxI8tB2RExex7w6AdAq-pQjZfqgY5YRqEfX5xTK4bZyLqxU/exec?course='+klass.id" target="_blank">Elevlänk</a></td>
-                      <td><a v-bind:href="'mailto:'+klass.courseGroupEmail" target="_blank">Gruppmail</a></td>
                     </tr>
                   </tbody>
                 </table>
@@ -167,6 +164,7 @@
                   </div>
                 </div>
             </div>
+      <a name="down">
       </div>
       
       <script>
@@ -359,10 +357,19 @@
              if(hittad){
                hittad["courseWork"] = uppgift;
                if (hittad.courseWork.maxPoints > 1 && hittad.assignedGrade > 0){
+
+                var min = 50;
+                 if(hittad.courseWork.description && hittad.courseWork.description.startsWith("E=")){
+                  var epoints = Number(
+                      hittad.courseWork.description.split("=")[1].split("p")[0]
+                      );
+                  var min = Math.round( epoints / hittad.courseWork.maxPoints * 100);
+                 }
+
                  hittad["provResultat"] = Math.round(hittad.assignedGrade / hittad.courseWork.maxPoints * 100);
-                 if(hittad["provResultat"] < 50){
+                 if(hittad["provResultat"] < min){
                    hittad["provNiva"] = "bg-danger";
-                 } else if (hittad["provResultat"] < 55) {
+                 } else if (hittad["provResultat"] < (min+4) ) {
                    hittad["provNiva"] = "bg-warning";
                  } else { 
                    hittad["provNiva"] = "bg-success";
