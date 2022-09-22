@@ -81,7 +81,7 @@
               <div class="card-body">
                 <h5 class="card-title">Kurser</h5>
                 <p class="card-text">Aktiva kurser</p>
-                <table class="card-body table table-sm">
+                <table class="card-body table table-sm" style="width:auto;">
                   <tbody>
                     <tr v-for="klass in courses_byname">
                       <td><a href="#down" v-on:click="show=klass.id">{{ klass.name }}</a></td>
