@@ -104,12 +104,10 @@
                 &nbsp;
               </template>
               </div>
-                <table class="table table-sm">
+                <table class="table table-sm" style="width:auto;">
                   <thead class="thead-light">
                     <tr>
                       <th><a v-bind:href="courceData.alternateLink" target="_blank">{{ courceData.name }}</a></th>
-                      <th>Pim</th>
-                      <th>Klass <button v-on:click="klass=''" class="btn btn-info btn-sm">alla</button></th>
                       <th v-bind:title="work.title" v-for="work in courceData.courseWork">
                         <a v-bind:href="work.alternateLink" target="_blank">{{ work.title.split(" ")[0] }}</a>
                       </th>
@@ -121,14 +119,6 @@
                         <input type="checkbox" v-model:value="student.vald"/>
                         <a v-bind:href="'mailto:'+student.emailAddress">{{ student.name.fullName }}</a>
                       </td>
-                      <td class="noprint">
-                        <a
-                          target="_blank"
-                          class="btn btn-sm btn-outline-info"
-                          role="button"
-                          v-bind:href="'https://hjarntorget.goteborg.se/pimWritePopup.do?recipient='+student.elevdata.pim">pim</button>
-                      </td>
-                      <td><button v-on:click="klass=student.elevdata.klass" class="btn btn-sm">{{ student.elevdata.klass }}</button></td>
                       <template v-for="work in getSubmissions(student.id)">
                       <td v-if="['NEW','CREATED','RECLAIMED_BY_STUDENT'].indexOf(work.state) > -1 && !work.courseWork.dueDate" class="bg-light">
                         <a target="_blank" v-bind:href="work.alternateLink">☐</a>
