@@ -1,0 +1,430 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://start.ltgee.se/css/bootstrap.min.css">
+    <script src="https://start.ltgee.se/classroom/lz-string.js"></script>
+    <style>
+     .whitep {
+       color: white;
+     }
+     .nolnb {
+       white-space: nowrap;
+     } 
+     tbody.oversikt tr td:nth-child(1) {  /*the first cell in each tr*/
+       position: sticky;
+       left:0px;
+     }
+     @media print {
+       .noprint {
+         visibility: hidden;
+         position: absolute;
+       }
+     }
+    </style>
+    <title>Classroom FGUI</title>
+  </head>
+  <body>
+    <script src="https://accounts.google.com/gsi/client"></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://start.ltgee.se/js/vue2.js"></script>
+    <div class="container-fluid">
+      <div id="classroom">
+            <div class="card mt-3 noprint">
+              <div class="card-body">
+                <h5 class="card-title">Kurser</h5>
+                <p class="card-text">Aktiva kurser</p>
+                <table class="card-body table table-sm table-striped" style="width:auto;">
+                  <thead class="thead-dark">
+                    <tr>
+                      <th>Kurs</th>
+                      <th>Klass</th>
+                      <th>Visa</th>
+                      <th>Öppna</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="klass in courceDatas">
+                      <td>{{ klass.name }}</td>
+                      <td>{{ klass.section }} ({{ klass.students.length }})</td>
+                      <td><a href="#" v-on:click="visa(klass.id,!klass.show)">Översikt</a></td>
+                      <td><a v-bind:href="klass.alternateLink" target="_blank">Classroom</a></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div v-for="courceData in courceDatas" class="card mt-3" v-if="courceData.show">
+              <div class="card-body noprint">
+              <button v-if="prov" class="btn btn-sm btn-primary" v-on:click="prov = false">Prov</button>
+              <button v-else="" class="btn btn-sm btn-outline-primary" v-on:click="prov = true">Prov</button>
+              &nbsp;              
+              <template v-for="topic in courceData.topics">
+                <button v-if="courceData.topic && courceData.topic.topicId == topic.topicId " class="btn btn-sm btn-primary" v-on:click="setTopic(courceData,false)">{{topic.name}}</button>
+                <button v-else="" class="btn btn-sm btn-outline-primary" v-on:click="setTopic(courceData,topic)">{{topic.name}}</button>
+                &nbsp;
+              </template>
+              </div>
+                <table class="table table-sm" style="width:auto;">
+                  <thead class="thead-light">
+                    <tr>
+                      <th><a v-bind:href="courceData.alternateLink" target="_blank">{{ courceData.name }}</a></th>
+                      <th v-bind:title="work.title" v-for="(work, index) in courceData.courseWork">
+                        <a v-if="work.title.split('.')[0].length > 4" v-bind:href="work.alternateLink" target="_blank">{{ String(index).padStart(2, '0') }}</a>
+                        <a v-else="" v-bind:href="work.alternateLink" target="_blank">{{ work.title.split(".")[0].slice(0, 4) }}</a>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="oversikt">
+                    <tr v-for="student in courceData.students" v-if="enstudent=='' || enstudent==student.id">
+                      <td class="bg-light nolnb">
+                        <input type="checkbox" v-model:value="student.vald"/>
+                        <button type="button" class="btn btn-sm btn-secondary" v-if="enstudent==''" v-on:click="enstudent=student.id">Bara</button>
+                        <button type="button" class="btn btn-sm btn-secondary" v-else="enstudent=''" v-on:click="enstudent=''">Alla</button>
+                        <a v-bind:href="'mailto:'+student.emailAddress">{{ student.name.fullName.split(" Krokslättsgymnasiet")[0]}}</a>
+                      </td>
+                      <template v-for="work in getSubmissions(courceData, student.id)">
+                      <td v-if="['NEW','CREATED','RECLAIMED_BY_STUDENT'].indexOf(work.state) > -1 && !work.courseWork.dueDate" class="bg-light">
+                        <a target="_blank" v-bind:href="work.alternateLink">☐</a>
+                      </td>
+                      <td v-else-if="['NEW','CREATED','RECLAIMED_BY_STUDENT'].indexOf(work.state) > -1 && !expired(work)" class="bg-dark">
+                        <a target="_blank" v-bind:href="work.alternateLink">☐</a>
+                      </td>
+                      <td v-else-if="['NEW','CREATED','RECLAIMED_BY_STUDENT'].indexOf(work.state) > -1 && expired(work)" class="bg-danger">
+                        <a target="_blank" v-bind:href="work.alternateLink">☐</a>
+                      </td>
+                      <td v-else-if="work.state == 'TURNED_IN'" class="bg-info">
+                        <a target="_blank" v-bind:href="work.alternateLink">☑</a>
+                      </td>
+                      <td v-else-if="work.provResultat > 1" v-bind:class="work.provNiva">
+                        <a target="_blank" style="color:black;" v-bind:href="work.alternateLink">
+                          {{ work.provResultat }}%
+                        </a>
+                      </td>
+                      <td v-else-if="work.state == 'RETURNED' && work.assignedGrade > 0 " class="bg-success">
+                        <a target="_blank" v-bind:href="work.alternateLink">☑</a></td>
+                      <td v-else-if="work.state == 'RETURNED'" class="bg-warning">
+                        <a target="_blank" v-bind:href="work.alternateLink">↩</a></td>
+                      </td>
+                      <td v-else="">{{work.state}}</td>
+                      </template>
+                    </tr>
+                  </tbody>
+                </table>
+                <div class="input-group mb-3 noprint">
+                  <input id="emails" v-bind:value="courceData.multiemail" class="form-control" />
+                  <div class="input-group-append">
+                    <button onclick="copy()" class="btn btn-outline-secondary" type="button">Kopiera</button>
+                  </div>
+                </div>
+            </div>
+          <button class="btn btn-sm btn-secondary" v-on:click="update">Updatera</button>
+          <button class="btn btn-sm btn-secondary" v-on:click="save">Spara i webbläsaren</button>
+          <button class="btn btn-sm btn-secondary" v-on:click="clear">Rensa i webbläsaren</button>
+      </div>
+      
+      <script>
+      function copy(){
+        var copyText = document.getElementById("emails");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        document.execCommand("copy");
+      }
+      var app = new Vue({
+        el: '#classroom',
+        data: {
+          courses: [],
+          students: {},
+          works: {},
+          submissions: {},
+          topics: {},
+          show: {},
+          prov: false,
+          klass: "",
+          enstudent: "",
+        },
+        computed: {
+          courses_byname: function(){
+            this.courses.sort(function(a, b) {
+              var nameA = a.name.toUpperCase().split(" ").join("");
+              var nameB = b.name.toUpperCase().split(" ").join("");
+              if (nameA < nameB) {
+                return -1;
+              }
+              if (nameA > nameB) {
+                return 1;
+              }
+              return 0;
+            });
+            return this.courses;
+          },
+          courceDatas: function(){
+           var out = [];
+           var prov = this.prov;
+           var klass = this.klass;
+           var show = this.show;
+           for(var i = 0; i < this.courses.length; i++){
+              function byTaskName( a, b ) {
+                if ( a.title < b.title ){
+                    return -1;
+                }
+                if ( a.title > b.title ){
+                  return 1;
+                }
+                return 0;
+              }
+              
+              function toHash(final, single) {
+                final[single.courseWorkId+single.userId] = single;
+                return final
+              }
+              function baravalda(work){
+                 if(topic){
+                   return (work.topicId == topic.topicId) 
+                 } else {
+                   return (work.title[0]=="P" || prov == false)
+                 }
+              }
+
+             function byName( a, b ) {
+                  if ( a.name.fullName < b.name.fullName ){
+                    return -1;
+                  }
+                  if ( a.name.fullName > b.name.fullName ){
+                    return 1;
+                  } 
+                return 0;
+              }
+              var final = this.courses[i];
+              var topic = final.topic;
+              try {
+                final.courseWork = this.works[final.id].sort(byTaskName).filter(baravalda);
+              } catch (error) {
+                final.courseWork = [];
+              }
+              try {
+                final.students = this.students[final.id].map(elev => elev.profile).sort(byName);
+              } catch (error) {
+                final.students = [];
+              }
+              final.multiemail = final.students.filter(student=>student.vald).map(student=>student.emailAddress).join(";");
+              try {
+                final.submissions = this.submissions[final.id].reduce(toHash,{});
+              } catch (error) {
+                final.submissions = {}
+              }
+              try {
+                if(show.hasOwnProperty(final.id)){
+                  final.show = show[final.id];
+                } else {
+                  final.show = false;
+                }
+              } catch (error) {
+                final.show = false;
+              }
+              final.topics = this.topics[final.id];
+              out.push(final);
+            }
+          return out;
+          }
+        },
+        created: function(){
+          this.load();
+        },
+        methods: {
+          expired: function(work){
+            var handin = work.courseWork.dueDate;
+            var then = new Date(handin.year.toString()+"-"+handin.month.toString()+"-"+handin.day.toString());
+            var now = new Date();
+            return then < now;
+          },
+          visa: function(id, state){
+            this.$set(this.show, id, state);
+          },
+          setTopic: function(cource, topic){
+            if(cource.topic && cource.topic.topicId == topic.topicId){
+              this.$set(cource, "topic", false); 
+            }
+            else {
+              this.$set(cource, "topic", topic);
+            }
+          },
+          update: function(){
+            var app = this;
+            function indata(data){
+              app.courses = data.result.courses;
+              app.getCourseWork();
+              app.getStudents();
+              app.getTopics();
+              app.getStudentSubmissions();
+            }
+            gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses","params":{"courseStates":"ACTIVE"}}).then(indata).catch(this.relogin);
+          },
+          relogin: function(){
+            localStorage.removeItem("token");
+            window.login();
+          },
+          load: function(){
+             var app = this;
+             ["courses","students","works","submissions","topics","show"].forEach(function(name){
+		          var data = localStorage.getItem(name);
+              if(data){
+                data = JSON.parse(LZString.decompress(data));
+              } else {
+                data = [];
+              }
+              if(name == "courses"){
+                      app.courses = data;
+              } else {
+                app[name] = Object.assign({}, app[name], data);
+              }
+             });
+          },
+          clear: function(){
+             var app = this;
+             ["courses","students","works","submissions","topics","show","token"].forEach(function(name){
+               localStorage.removeItem(name);
+             });
+          },
+          save: function(){
+             var app = this;
+             ["courses","students","works","submissions","topics","show"].forEach(function(name){
+               localStorage.setItem(name, LZString.compress(JSON.stringify(app[name])));
+             });
+          },
+          getSubmissions: function (courceData, elevid){
+              var alla = [];
+              for(var i = 0; i < courceData.courseWork.length; i++){
+                alla.push(this.getSubmission(courceData, elevid, courceData.courseWork[i]));
+              }
+              return alla;
+          },
+          getSubmission: function (courceData, elevid, uppgift){
+             var hittad = courceData.submissions[uppgift.id+elevid];
+             if(hittad){
+               hittad["courseWork"] = uppgift;
+               if (hittad.courseWork.maxPoints > 1 && hittad.assignedGrade > 0){
+
+                var min = 50;
+                 if(hittad.courseWork.description && hittad.courseWork.description.startsWith("E=")){
+                  var epoints = Number(
+                      hittad.courseWork.description.split("=")[1].split("p")[0]
+                      );
+                  var min = Math.round( epoints / hittad.courseWork.maxPoints * 100);
+                 }
+
+                 hittad["provResultat"] = Math.round(hittad.assignedGrade / hittad.courseWork.maxPoints * 100);
+                 if(hittad["provResultat"] < min){
+                   hittad["provNiva"] = "bg-danger";
+                 } else if (hittad["provResultat"] < (min+4) ) {
+                   hittad["provNiva"] = "bg-warning";
+                 } else { 
+                   hittad["provNiva"] = "bg-success";
+                 }
+               }
+               return hittad;
+             }
+             return {"state":"","alternateLink":""};
+          },
+          getStudents: function (){
+            var app = this;
+            this.courses.forEach(function(kurs){
+              var newstudents = [];
+              var lkurs = kurs;
+              function students(data){
+                newstudents = newstudents.concat(data.result.students);
+                if(data.result.nextPageToken){
+                  gapi.client.request(
+                    {"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/students",
+                    "params":{"pageSize":64,"pageToken":data.result.nextPageToken}}
+                    ).then(students);
+                } else {
+                  app.$set(app.students, lkurs.id, newstudents);
+                }
+              }                
+              gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/students","params":{"pageSize":64}}).then(students)
+            })
+          },
+          getCourseWork: function (){
+            var app = this;
+            this.courses.forEach(function(kurs){
+              var lkurs = kurs
+              function courseWork(data){
+                 app.$set(app.works, lkurs.id, data.result.courseWork);
+                }
+              gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/courseWork","params":{"fields":"courseWork(alternateLink,id,courseId,maxPoints,state,title,topicId,updateTime,workType)"}}).then(courseWork)
+            })
+          },
+          getTopics: function (){
+            var app = this;
+            this.courses.forEach(function(kurs){
+              var lkurs = kurs;
+              function newTopics(data){
+                 app.$set(app.topics, lkurs.id, data.result.topic);
+                }
+              gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/topics","params":{}}).then(newTopics)
+            });
+          },
+          getStudentSubmissions: function (){
+            var app = this;
+            this.courses.forEach(function(kurs){
+              var lkurs = kurs
+              var newsubmissions = [];
+              function courseWorkSubmission(data){
+                newsubmissions = newsubmissions.concat(data.result.studentSubmissions);
+                if(data.result.nextPageToken){
+                  gapi.client.request(
+                      {"path":"https://classroom.googleapis.com/v1/courses/"+lkurs.id+"/courseWork/-/studentSubmissions",
+                      "params":{"pageToken":data.result.nextPageToken,"fields":"studentSubmissions(assignedGrade,courseId,courseWorkId,id,userId,state,alternateLink,courseWorkType)"}}
+                      ).then(courseWorkSubmission);
+                } else {
+                  app.$set(app.submissions[lkurs.id] = newsubmissions);
+                }
+              }
+              gapi.client.request({"path":"https://classroom.googleapis.com/v1/courses/"+kurs.id+"/courseWork/-/studentSubmissions","params":{"fields":"studentSubmissions(assignedGrade,courseId,courseWorkId,id,userId,state,alternateLink,courseWorkType)"}}).then(courseWorkSubmission)
+            })
+          }
+        }
+      });
+      </script>
+      <script>
+      var Scopes = [
+        "https://www.googleapis.com/auth/classroom.rosters",
+        "https://www.googleapis.com/auth/classroom.rosters.readonly",
+        "https://www.googleapis.com/auth/classroom.profile.emails",
+        "https://www.googleapis.com/auth/classroom.profile.photos",
+        "https://www.googleapis.com/auth/classroom.courses.readonly",
+        "https://www.googleapis.com/auth/classroom.coursework.students.readonly",
+        "https://www.googleapis.com/auth/classroom.student-submissions.students.readonly",
+        "https://www.googleapis.com/auth/classroom.topics.readonly"
+      ]
+      var SCOPE = Scopes.join(" ");
+      
+      function login(){
+        var data = localStorage.getItem("token");
+        if(data){
+          data = JSON.parse(data);
+          gapi.client.setApiKey('AAIzaSyBJbdSNcDcq_C86__XSvsRHaF0GgLdRIDA');
+          gapi.client.setToken(data);
+          app.update();
+          return;
+        }
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: '895135418381-m1fmm24b5h76upit18r43f8su4pptld9.apps.googleusercontent.com',
+        scope: SCOPE,
+        callback: (response) => {
+          localStorage.setItem("token",JSON.stringify(response));
+          gapi.client.setApiKey('AIzaSyBJbdSNcDcq_C86__XSvsRHaF0GgLdRIDA');
+          gapi.client.setToken(response);
+          app.update();
+        },
+      });
+      client.requestAccessToken();
+      }
+      gapi.load('client',login)
+    </script>
+    </div>
+  </body>
+</html>
